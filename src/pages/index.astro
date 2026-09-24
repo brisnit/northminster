@@ -1,0 +1,348 @@
+---
+import Base from '@/layouts/Base.astro';
+import HomeHero from '@/components/HomeHero.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import Photo from '@/components/Photo.astro';
+import Icon from '@/components/Icon.astro';
+import VideoPlayer from '@/components/VideoPlayer.astro';
+import MessageCard from '@/components/MessageCard.astro';
+import EventCard from '@/components/EventCard.astro';
+import MinistryCard from '@/components/MinistryCard.astro';
+import NewHereCTA from '@/components/NewHereCTA.astro';
+
+import { church } from '@/config/site';
+import { sermons } from '@/content/sermons';
+import { upcomingEvents } from '@/content/events';
+import { ministries } from '@/content/ministries';
+import { formatDate } from '@/lib/dates';
+
+import heroWide from '@/assets/photos/sanctuary-scripture-reading.jpg';
+import heroTall from '@/assets/photos/sanctuary-congregation.jpg';
+import campusSign from '@/assets/photos/campus-sign.jpg';
+import kitchenVolunteers from '@/assets/photos/kitchen-volunteers.jpg';
+import fallCostume from '@/assets/photos/fall-costume.jpg';
+import gardenSpeaker from '@/assets/photos/garden-speaker.jpg';
+import campSanctuary from '@/assets/photos/camp-sanctuary.jpg';
+import campGardenLunch from '@/assets/photos/camp-garden-lunch.jpg';
+import memberSmiling from '@/assets/photos/member-smiling.jpg';
+import sanctuaryBuild from '@/assets/history/slide-19.jpg';
+import campusCanopy from '@/assets/photos/campus-canopy.jpg';
+
+const [latest, ...previous] = sermons;
+const featuredEvents = upcomingEvents().filter((e) => e.featured).slice(0, 4);
+---
+
+<Base header="overlay">
+  <HomeHero
+    desktop={heroWide}
+    mobile={heroTall}
+    alt="A young girl reads scripture at the lectern while the Northminster congregation listens from the pews"
+  />
+
+  <!-- WHO WE ARE -->
+  <section class="section intro" aria-labelledby="intro-title">
+    <div class="container">
+      <p class="eyebrow intro__eyebrow" data-reveal>Who is Northminster?</p>
+      <h2 id="intro-title" class="intro__statement" data-reveal>
+        We’re a neighborhood church in Clairemont — families, empty-nesters and retirees, about sixty of us on a Sunday.
+        <em>Small enough that you’ll be known by name.</em> Close enough that we show up for each other.
+      </h2>
+
+      <div class="intro__grid">
+        <div class="intro__why" data-reveal>
+          <p class="lede">
+            We exist to love God and our neighbors as ourselves. That’s the whole idea, and it shapes everything:
+            how we worship, how we eat together on Wednesday nights, how we tend a garden with the neighborhood,
+            and how we show up for San Diego.
+          </p>
+          <a href="/about" class="link-arrow">More about us <Icon name="arrow" size={16} /></a>
+        </div>
+        <ol role="list" class="pillars">
+          <li data-reveal style="--reveal-delay:0">
+            <span class="pillars__num">01</span>
+            <h3 class="h4">Grow in faith</h3>
+            <p class="muted">Honest, Scripture-rooted teaching that connects Jesus to the world we actually live in.</p>
+          </li>
+          <li data-reveal style="--reveal-delay:1">
+            <span class="pillars__num">02</span>
+            <h3 class="h4">Support one another</h3>
+            <p class="muted">Coffee on Sunday, dinner on Wednesday, and people who genuinely care how you’re doing.</p>
+          </li>
+          <li data-reveal style="--reveal-delay:2">
+            <span class="pillars__num">03</span>
+            <h3 class="h4">Share the good news</h3>
+            <p class="muted">Through our community garden, our mission partners and our neighbors across the city.</p>
+          </li>
+        </ol>
+      </div>
+
+      <dl class="stats">
+        <div data-reveal style="--reveal-delay:0"><dt>Serving Clairemont since</dt><dd>1953</dd></div>
+        <div data-reveal style="--reveal-delay:1"><dt>Worship service, Sundays at 10</dt><dd>1</dd></div>
+        <div data-reveal style="--reveal-delay:2"><dt>Neighbors on an ordinary Sunday</dt><dd>~60</dd></div>
+        <div data-reveal style="--reveal-delay:3"><dt>Gardeners in our community garden</dt><dd>40</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- PLAN YOUR VISIT -->
+  <section class="section section--sand visit" aria-labelledby="visit-title">
+    <div class="container">
+      <SectionHeader
+        eyebrow="Plan your visit"
+        title="Your first Sunday, <em>made easy.</em>"
+        intro="Whether you’ve been in church your whole life or never been at all, walking in somewhere new takes courage. Here’s everything you need to know."
+        align="split"
+        id="visit-title"
+      />
+
+      <div class="visit__grid">
+        <Photo src={campusSign} alt="Northminster’s sign on Clairemont Mesa Blvd, announcing Sunday worship at 10 AM" ratio="4 / 5" position="30% 50%" sizes="(min-width: 64em) 36vw, 100vw" class="visit__photo" />
+
+        <ul role="list" class="visit__tiles">
+          <li class="tile" data-reveal>
+            <Icon name="clock" size={26} class="tile__icon" />
+            <h3 class="tile__title">Sundays at 10 AM</h3>
+            <p>One service, about an hour. The message runs about 30 minutes.</p>
+          </li>
+          <li class="tile" data-reveal style="--reveal-delay:1">
+            <Icon name="pin" size={26} class="tile__icon" />
+            <h3 class="tile__title">4324 Clairemont Mesa Blvd</h3>
+            <p>Between Genesee and Clairemont Dr., right next to O’Reilly Auto Parts. <a href={church.directionsUrl} target="_blank" rel="noopener">Get directions<span class="visually-hidden"> (opens Google Maps)</span></a></p>
+          </li>
+          <li class="tile" data-reveal style="--reveal-delay:2">
+            <Icon name="users" size={26} class="tile__icon" />
+            <h3 class="tile__title">Kids are welcome</h3>
+            <p>Ages 3 through 6th grade start in worship, then head to Sunday School with trained volunteers.</p>
+          </li>
+          <li class="tile" data-reveal style="--reveal-delay:3">
+            <Icon name="coffee" size={26} class="tile__icon" />
+            <h3 class="tile__title">Coffee’s on</h3>
+            <p>Grab a coffee and a donut before or after. Worship blends contemporary music with familiar traditions.</p>
+          </li>
+        </ul>
+      </div>
+
+      <div class="visit__cta" data-reveal>
+        <a href="/visit" class="btn btn--teal">Plan your visit <Icon name="arrow" size={18} class="btn__arrow" /></a>
+        <a href="/visit#what-to-expect" class="link-arrow">What happens on a Sunday <Icon name="arrow" size={16} /></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LATEST MESSAGE -->
+  <section class="section section--night messages" aria-labelledby="message-title">
+    <div class="container">
+      <div class="messages__feature">
+        <div class="messages__player" data-reveal>
+          <VideoPlayer sermon={latest} />
+        </div>
+        <div class="messages__info" data-reveal style="--reveal-delay:1">
+          <p class="eyebrow messages__eyebrow">Latest message</p>
+          <h2 id="message-title" class="h2">{latest.title}</h2>
+          <dl class="messages__meta">
+            <div><dt>Speaker</dt><dd>{latest.speaker}</dd></div>
+            <div><dt>Series</dt><dd>{latest.series}</dd></div>
+            {latest.scripture && <div><dt>Scripture</dt><dd>{latest.scripture}</dd></div>}
+            <div><dt>Date</dt><dd><time datetime={latest.date}>{formatDate(latest.date)}</time></dd></div>
+          </dl>
+          <div class="btn-row">
+            <a href={`/messages/${latest.slug}`} class="btn btn--light"><Icon name="play" size={16} /> Watch</a>
+            {latest.audioUrl && <a href={`/messages/${latest.slug}#listen`} class="btn btn--outline-light"><Icon name="headphones" size={18} /> Listen</a>}
+          </div>
+        </div>
+      </div>
+
+      <div class="messages__more">
+        <div class="messages__more-head">
+          <h3 class="eyebrow">Previous messages</h3>
+          <a href="/messages" class="link-arrow">All messages <Icon name="arrow" size={16} /></a>
+        </div>
+        <div class="messages__list">
+          {previous.slice(0, 3).map((s) => <MessageCard sermon={s} />)}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT'S HAPPENING -->
+  {featuredEvents.length > 0 && (
+    <section class="section happening" aria-labelledby="events-title">
+      <div class="container">
+        <SectionHeader eyebrow="What’s happening" title="Pull up <em>a chair.</em>" align="split" id="events-title"
+          intro="Dinners, movie nights, a night off for parents. There’s almost always something going on — and you’re invited to all of it.">
+          <a href="/events" class="btn btn--outline">See all events <Icon name="arrow" size={18} class="btn__arrow" /></a>
+        </SectionHeader>
+        <div class="happening__grid">
+          {featuredEvents.map((event, i) => (
+            <EventCard event={event} variant={i === 0 ? 'feature' : 'default'}
+              sizes={i === 0 ? '(min-width: 64em) 48vw, 85vw' : '(min-width: 64em) 24vw, 85vw'} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- FIND YOUR COMMUNITY -->
+  <section class="section section--sand community" aria-labelledby="community-title">
+    <div class="container">
+      <SectionHeader eyebrow="Find your people" title="There’s a place <em>for you here.</em>" align="split" id="community-title"
+        intro="Faith was never meant to be lived alone. Find people to grow, serve, laugh, pray and walk through life with.">
+        <a href="/connect" class="btn btn--outline">Ways to connect <Icon name="arrow" size={18} class="btn__arrow" /></a>
+      </SectionHeader>
+      <div class="community__grid">
+        {ministries.map((m, i) => <MinistryCard ministry={m} index={i} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- OUR COMMUNITY -->
+  <section class="section ourpeople" aria-labelledby="people-title">
+    <div class="container">
+      <SectionHeader eyebrow="This is who we are" title="Real people. <em>A real neighborhood.</em>" align="split" id="people-title"
+        intro="No stock photos here. These are our kitchens, our lawn, our garden and our sanctuary — and the people who fill them." />
+
+      <div class="mosaic">
+        <figure class="mosaic__a">
+          <Photo src={kitchenVolunteers} alt="Three women laughing while making food together in the church kitchen" ratio="3 / 4" sizes="(min-width: 56em) 32vw, 100vw" />
+          <figcaption>Wednesday nights start in the kitchen.</figcaption>
+        </figure>
+        <figure class="mosaic__b">
+          <Photo src={campSanctuary} alt="Kids in blue camp shirts dancing in the aisle of the sanctuary during summer camp" ratio="3 / 2" sizes="(min-width: 56em) 64vw, 100vw" />
+          <figcaption>Artsy Adventure Camp, in the sanctuary.</figcaption>
+        </figure>
+        <blockquote class="mosaic__quote" data-reveal>
+          <p>“In short, we love God and our neighbors as ourselves.”</p>
+          <cite>— How Northminster describes itself</cite>
+        </blockquote>
+        <figure class="mosaic__c">
+          <Photo src={gardenSpeaker} alt="A guest speaker addresses gardeners beneath the vine-covered arbor" ratio="3 / 4" position="50% 40%" sizes="(min-width: 56em) 24vw, 50vw" />
+          <figcaption>Saturday mornings in the garden.</figcaption>
+        </figure>
+        <figure class="mosaic__d">
+          <Photo src={fallCostume} alt="A smiling volunteer in Minnie Mouse ears and a polka-dot skirt on the church lawn" ratio="3 / 4" position="50% 35%" sizes="(min-width: 56em) 24vw, 50vw" />
+          <figcaption>Fall festival on the lawn.</figcaption>
+        </figure>
+        <figure class="mosaic__e">
+          <Photo src={campGardenLunch} alt="Children in camp shirts eating lunch together at a table beside the garden beds" ratio="4 / 3" sizes="(min-width: 56em) 48vw, 100vw" />
+          <figcaption>Lunch beside the garden beds.</figcaption>
+        </figure>
+        <figure class="mosaic__f">
+          <Photo src={memberSmiling} alt="A longtime member smiling warmly on the patio" ratio="4 / 3" sizes="(min-width: 56em) 48vw, 100vw" position="40% 30%" />
+          <figcaption>Some of us have been here for decades.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTORY TEASER -->
+  <section class="section section--night story" aria-labelledby="story-title">
+    <div class="container story__grid">
+      <Photo src={sanctuaryBuild} alt="The sanctuary’s steep, tent-like timber frame rising against a blue sky in 1964" ratio="4 / 3" sizes="(min-width: 56em) 50vw, 100vw" />
+      <div class="story__text">
+        <p class="eyebrow story__eyebrow" data-reveal>Our story</p>
+        <h2 id="story-title" class="h2" data-reveal>It started in a <em>Clairemont duplex.</em></h2>
+        <p class="lede muted" data-reveal>
+          In December 1953, a handful of neighbors began meeting in a living room. Eleven years later they broke ground on
+          the tented, mid-century sanctuary we still worship in today.
+        </p>
+        <a href="/about/story" class="btn btn--outline-light" data-reveal>See the early days <Icon name="arrow" size={18} class="btn__arrow" /></a>
+      </div>
+    </div>
+  </section>
+
+  <NewHereCTA image={campusCanopy} imageAlt="The curved, mid-century covered walkway leading to Northminster’s entrance on a sunny day" />
+</Base>
+
+<style>
+  /* Intro */
+  .intro__eyebrow { color: var(--ember); margin-bottom: 1.5rem; }
+  .intro__statement {
+    font-family: var(--display); font-weight: 350; font-size: clamp(1.85rem, 1.1rem + 3vw, 4.25rem);
+    line-height: 1.08; letter-spacing: -0.028em; max-width: 22ch;
+  }
+  .intro__statement em { font-style: italic; color: var(--teal); }
+  .intro__grid { display: grid; gap: var(--space-xl); margin-top: var(--space-xl); }
+  .intro__why { display: grid; gap: 1.5rem; justify-items: start; align-content: start; }
+  @media (min-width: 60em) { .intro__grid { grid-template-columns: 1fr 1.4fr; } }
+  .pillars { display: grid; gap: 2rem; }
+  @media (min-width: 40em) { .pillars { grid-template-columns: repeat(3, 1fr); } }
+  .pillars li { border-top: 1.5px solid var(--ink); padding-top: 1.25rem; }
+  .pillars__num { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; color: var(--ember); margin-bottom: 1.5rem; }
+  .pillars h3 { margin-bottom: 0.6rem; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem 1.5rem;
+    margin-top: var(--space-xl); padding-top: var(--space-l); border-top: 1px solid var(--line);
+  }
+  @media (min-width: 56em) { .stats { grid-template-columns: repeat(4, 1fr); } }
+  .stats div { display: flex; flex-direction: column-reverse; gap: 0.4rem; }
+  .stats dd { font-family: var(--display); font-size: var(--step-5); line-height: 0.9; letter-spacing: -0.04em; font-weight: 330; color: var(--teal); }
+  .stats dt { color: var(--muted); font-size: var(--step--1); max-width: 18ch; }
+
+  /* Visit */
+  .visit__grid { display: grid; gap: var(--space-l); }
+  @media (min-width: 64em) { .visit__grid { grid-template-columns: 0.85fr 1.15fr; align-items: stretch; } }
+  .visit__tiles { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  @media (min-width: 40em) { .visit__tiles { grid-template-columns: 1fr 1fr; } }
+  .tile { display: grid; align-content: start; gap: 0.6rem; padding: clamp(1.5rem, 3vw, 2.5rem); background: var(--paper); }
+  .tile :global(.tile__icon) { color: var(--teal); margin-bottom: 0.75rem; }
+  .tile__title { font-family: var(--display); font-size: var(--step-2); font-weight: 400; letter-spacing: -0.015em; line-height: 1.1; }
+  .tile p { color: var(--muted); }
+  .tile a { color: var(--teal); font-weight: 650; }
+  .visit__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; margin-top: var(--space-l); }
+
+  /* Messages */
+  .messages__feature { display: grid; gap: var(--space-l); align-items: center; }
+  @media (min-width: 64em) { .messages__feature { grid-template-columns: 1.5fr 1fr; gap: var(--space-xl); } }
+  .messages__eyebrow { color: var(--gold); margin-bottom: 1rem; }
+  .messages__meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; margin-block: 2rem; padding-block: 1.5rem; border-block: 1px solid var(--line-night); }
+  .messages__meta dt { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--on-night-muted); }
+  .messages__meta dd { margin-top: 0.2rem; }
+  .messages__more { margin-top: var(--space-xl); padding-top: var(--space-l); border-top: 1px solid var(--line-night); }
+  .messages__more-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.75rem; }
+  .messages__more-head h3 { color: var(--on-night-muted); }
+  .messages__list { display: grid; gap: 2.5rem 1.5rem; }
+  @media (min-width: 40em) { .messages__list { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 64em) { .messages__list { grid-template-columns: repeat(3, 1fr); } }
+
+  /* Events */
+  .happening__grid { display: grid; gap: 2.5rem 1.5rem; }
+  @media (min-width: 40em) { .happening__grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 64em) {
+    .happening__grid { grid-template-columns: 2fr 1fr 1fr; grid-template-rows: auto auto; }
+    .happening__grid > :global(:first-child) { grid-row: span 2; }
+    .happening__grid > :global(:nth-child(4)) { grid-column: 2 / span 2; }
+    .happening__grid > :global(:nth-child(4) .ecard__link) { grid-template-columns: 1fr 1fr; align-items: start; }
+  }
+
+  /* Community */
+  .community__grid { display: grid; gap: 3rem 1.5rem; }
+  @media (min-width: 40em) { .community__grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 64em) { .community__grid { grid-template-columns: repeat(3, 1fr); } }
+
+  /* Mosaic */
+  .mosaic { display: grid; gap: 1.25rem 1rem; grid-template-columns: repeat(2, 1fr); }
+  .mosaic figure { margin: 0; }
+  .mosaic figcaption { margin-top: 0.6rem; font-size: var(--step--1); color: var(--muted); }
+  .mosaic__a, .mosaic__b, .mosaic__e, .mosaic__f, .mosaic__quote { grid-column: 1 / -1; }
+  .mosaic__quote { display: grid; align-content: center; gap: 1rem; padding-block: 1.5rem; }
+  .mosaic__quote p { font-family: var(--display); font-size: var(--step-3); font-style: italic; font-weight: 330; line-height: 1.1; letter-spacing: -0.02em; color: var(--teal); }
+  .mosaic__quote cite { font-style: normal; font-size: var(--step--1); color: var(--muted); }
+  @media (min-width: 56em) {
+    .mosaic { grid-template-columns: repeat(12, 1fr); gap: 2.5rem 1.5rem; align-items: center; }
+    .mosaic__a { grid-column: 1 / span 4; }
+    .mosaic__b { grid-column: 5 / span 8; }
+    .mosaic__quote { grid-column: 1 / span 6; padding: 0 3rem 0 0; }
+    .mosaic__c { grid-column: 7 / span 3; }
+    .mosaic__d { grid-column: 10 / span 3; }
+    .mosaic__e { grid-column: 1 / span 6; }
+    .mosaic__f { grid-column: 7 / span 6; }
+  }
+
+  /* Story */
+  .story__grid { display: grid; gap: var(--space-l); align-items: center; }
+  @media (min-width: 56em) { .story__grid { grid-template-columns: 1.1fr 1fr; gap: var(--space-xl); } }
+  .story__text { display: grid; gap: 1.5rem; justify-items: start; }
+  .story__eyebrow { color: var(--gold); }
+</style>

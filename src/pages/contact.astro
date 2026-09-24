@@ -1,0 +1,129 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import NeedsInfo from '@/components/NeedsInfo.astro';
+import Icon from '@/components/Icon.astro';
+import { church } from '@/config/site';
+
+const topics = [
+  'I’m planning my first visit',
+  'Please send me the Zoom link',
+  'Kids, youth or Parents Night Out',
+  'Community garden waiting list',
+  'I’d like to volunteer',
+  'Something else',
+];
+const endpoint = church.formEndpoint || `mailto:${church.email}`;
+---
+
+<Base title="Contact" description="Call, email or visit Northminster Presbyterian Church at 4324 Clairemont Mesa Blvd, San Diego. We’d love to hear from you.">
+  <PageHero
+    eyebrow="Contact"
+    title="We’d love to <em>hear from you.</em>"
+    lede="Questions about Sunday, your kids, faith, or anything else — there are real people on the other end of this."
+  />
+
+  <section class="section--tight contact-section">
+    <div class="container contact">
+      <div class="contact__info">
+        <a href={church.phoneHref} class="cinfo" data-reveal>
+          <Icon name="phone" size={24} />
+          <span><span class="eyebrow">Call</span><span class="cinfo__value">{church.phone}</span></span>
+        </a>
+        <a href={`mailto:${church.email}`} class="cinfo" data-reveal>
+          <Icon name="mail" size={24} />
+          <span><span class="eyebrow">Email</span><span class="cinfo__value cinfo__value--sm">{church.email}</span></span>
+        </a>
+        <a href={church.directionsUrl} class="cinfo" target="_blank" rel="noopener" data-reveal>
+          <Icon name="pin" size={24} />
+          <span><span class="eyebrow">Visit</span><span class="cinfo__value cinfo__value--sm">{church.address.street}<br />{church.address.city}, {church.address.region} {church.address.postalCode}</span><span class="visually-hidden"> (directions, opens in a new tab)</span></span>
+        </a>
+        <div class="cinfo cinfo--static" data-reveal>
+          <Icon name="clock" size={24} />
+          <span><span class="eyebrow">Sunday worship</span><span class="cinfo__value">10:00 AM</span></span>
+        </div>
+        <NeedsInfo note="Church office hours are not listed on the current site" />
+        <p class="small muted contact__youth">Kids &amp; youth questions: <a href={`mailto:${church.youthEmail}`}>{church.youthEmail}</a></p>
+      </div>
+
+      <form class="form" action={endpoint} method="post" enctype={church.formEndpoint ? undefined : 'text/plain'} data-contact-form data-mailto={church.formEndpoint ? undefined : church.email}>
+        <h2 class="h3">Send us a note</h2>
+        <div class="form__row">
+          <div class="field">
+            <label for="name">Your name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </div>
+        </div>
+        <div class="field">
+          <label for="phone">Phone <span class="field__opt">(optional)</span></label>
+          <input id="phone" name="phone" type="tel" autocomplete="tel" />
+        </div>
+        <div class="field">
+          <label for="topic">What’s this about?</label>
+          <select id="topic" name="topic">
+            {topics.map((t) => <option>{t}</option>)}
+          </select>
+        </div>
+        <div class="field">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn btn--teal">Send message <Icon name="arrow" size={18} class="btn__arrow" /></button>
+        <p class="small muted form__note" data-form-note>
+          {church.formEndpoint ? 'We usually reply within a few days.' : 'This opens your email app with your message ready to send.'}
+        </p>
+      </form>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // Without a form service configured, compose a pre-filled email instead.
+  const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+  const to = form?.dataset.mailto;
+  if (form && to) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const d = new FormData(form);
+      const subject = `${d.get('topic')} — from ${d.get('name')}`;
+      const body = `${d.get('message')}\n\n${d.get('name')}\n${d.get('email')}${d.get('phone') ? `\n${d.get('phone')}` : ''}`;
+      window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    });
+  }
+</script>
+
+<style>
+  .contact-section { padding-top: 0; }
+  .contact { display: grid; gap: var(--space-xl); align-items: start; }
+  @media (min-width: 60em) { .contact { grid-template-columns: 1fr 1.25fr; } }
+  .contact__info { display: grid; gap: 0; border-top: 1.5px solid var(--ink); }
+  .cinfo { display: flex; gap: 1rem; align-items: flex-start; padding-block: 1.4rem; border-bottom: 1px solid var(--line); text-decoration: none; }
+  .cinfo .icon { color: var(--teal); margin-top: 0.2rem; }
+  .cinfo > span { display: grid; gap: 0.3rem; }
+  .cinfo .eyebrow { color: var(--ember); font-size: 0.75rem; }
+  .cinfo__value { font-family: var(--display); font-size: var(--step-2); line-height: 1.15; overflow-wrap: anywhere; }
+  .cinfo__value--sm { font-size: var(--step-1); }
+  a.cinfo:hover .cinfo__value { text-decoration: underline; text-decoration-thickness: 1px; }
+  .contact__youth { margin-top: 1rem; }
+  .contact__youth a { color: var(--teal); font-weight: 600; }
+
+  .form { display: grid; gap: 1.25rem; padding: clamp(1.5rem, 4vw, 3rem); background: var(--sand); border-radius: var(--radius); }
+  .form__row { display: grid; gap: 1.25rem; }
+  @media (min-width: 40em) { .form__row { grid-template-columns: 1fr 1fr; } }
+  .field { display: grid; gap: 0.4rem; }
+  .field label { font-weight: 650; font-size: 0.9375rem; }
+  .field__opt { font-weight: 400; color: var(--muted); }
+  .field input, .field select, .field textarea {
+    width: 100%; min-height: 3.1rem; padding: 0.75rem 0.9rem;
+    border: 1.5px solid #8c8174; border-radius: var(--radius);
+    background: var(--paper); font-size: 1rem;
+  }
+  .field textarea { resize: vertical; }
+  .field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: 3px solid var(--teal); outline-offset: 1px; border-color: var(--teal); }
+  .form .btn { justify-self: start; }
+  .form__note { margin-top: -0.25rem; }
+</style>

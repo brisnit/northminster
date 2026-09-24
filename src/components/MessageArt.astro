@@ -1,0 +1,71 @@
+---
+import type { Sermon } from '@/content/sermons';
+import { formatShortDate } from '@/lib/dates';
+
+/**
+ * Typographic title card for a message. Northminster's video thumbnails
+ * are low-resolution Zoom captures, so every message gets a consistent,
+ * editorial poster instead. Color is chosen deterministically per message.
+ */
+interface Props { sermon: Sermon; size?: 'lg' | 'md' }
+const { sermon, size = 'md' } = Astro.props;
+
+const tones = ['walnut', 'teal', 'night', 'ember'] as const;
+const hash = [...sermon.slug].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+const tone = tones[hash % tones.length];
+---
+
+<div class:list={['art', `art--${tone}`, `art--${size}`]} aria-hidden="true">
+  <div class="art__inner">
+  <svg class="art__mark" viewBox="0 0 32 40"><path d="M16 1 31 39H19.2L16 16.5 12.8 39H1L16 1Z" fill="currentColor" /></svg>
+  <span class="art__top">
+    <span>{sermon.series}</span>
+    <span>{formatShortDate(sermon.date)}</span>
+  </span>
+  <span class="art__title">{sermon.title}</span>
+  <span class="art__bottom">{sermon.scripture ?? (sermon.kind === 'homily' ? 'Homily' : 'Message')}</span>
+  </div>
+</div>
+
+<style>
+  .art {
+    --bg: var(--night); --fg: var(--on-night); --hi: var(--gold);
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: var(--bg); color: var(--fg);
+    overflow: hidden; container-type: inline-size;
+    border-radius: var(--radius);
+  }
+  .art__inner {
+    position: absolute; inset: 0;
+    display: grid; grid-template-rows: auto 1fr auto; gap: 0.5rem;
+    padding: clamp(0.9rem, 4.5cqi, 2.5rem);
+  }
+  .art--walnut { --bg: #4a2e1e; --hi: #f0c27a; }
+  .art--teal { --bg: var(--teal-deep); --hi: var(--teal-soft); }
+  .art--night { --bg: var(--night-2); --hi: var(--gold); }
+  .art--ember { --bg: #7a3316; --hi: #f6d7b8; }
+
+  .art::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(120% 90% at 85% 0%, rgb(255 255 255 / 0.14), transparent 55%);
+  }
+  .art__mark {
+    position: absolute; right: -4%; bottom: -12%;
+    width: 42%; height: auto; color: var(--hi); opacity: 0.12;
+    transition: transform 1s var(--ease);
+  }
+  :global(a:hover) .art__mark, :global(button:hover) .art__mark { transform: translateY(-4%); }
+  .art__top, .art__bottom {
+    position: relative; display: flex; justify-content: space-between; gap: 1rem;
+    font-size: clamp(0.625rem, 2.6cqi, 0.875rem); font-weight: 650; letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .art__top span:first-child { color: var(--hi); }
+  .art__title {
+    position: relative; align-self: end;
+    font-family: var(--display); font-weight: 360; letter-spacing: -0.03em; line-height: 0.95;
+    font-size: clamp(1.4rem, 9.5cqi, 5.25rem);
+    max-width: 12ch; text-wrap: balance;
+  }
+  .art__bottom { color: rgb(246 241 232 / 0.8); letter-spacing: 0.1em; }
+</style>

@@ -1,0 +1,41 @@
+---
+/**
+ * Northminster wordmark. The mark abstracts the 1965 sanctuary's steep,
+ * tented roofline — with an open door at its center.
+ */
+interface Props { tone?: 'ink' | 'light'; compact?: boolean }
+const { tone = 'ink', compact = false } = Astro.props;
+---
+
+<span class:list={['logo', `logo--${tone}`, compact && 'logo--compact']}>
+  <svg class="logo__mark" viewBox="0 0 32 40" aria-hidden="true" focusable="false">
+    <path d="M16 1 31 39H19.2L16 16.5 12.8 39H1L16 1Z" fill="currentColor" />
+  </svg>
+  <span class="logo__text">
+    <span class="logo__name">Northminster</span>
+    <span class="logo__sub">Presbyterian Church</span>
+  </span>
+</span>
+
+<style>
+  .logo { display: inline-flex; align-items: center; gap: 0.7rem; color: var(--ink); line-height: 1; }
+  .logo--light { color: var(--on-night); }
+  .logo__mark { width: 1.6rem; height: 2rem; color: var(--teal); flex-shrink: 0; }
+  .logo--light .logo__mark { color: var(--gold); }
+  .logo__text { display: flex; flex-direction: column; gap: 0.3rem; }
+  .logo__name {
+    font-family: var(--display);
+    font-size: 1.45rem;
+    font-weight: 480;
+    letter-spacing: -0.02em;
+  }
+  .logo__sub {
+    font-size: 0.625rem;
+    font-weight: 650;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+  .logo--compact .logo__name { font-size: 1.25rem; }
+  .logo--compact .logo__mark { width: 1.35rem; height: 1.7rem; }
+</style>

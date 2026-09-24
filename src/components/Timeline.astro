@@ -1,0 +1,39 @@
+---
+import type { Moment } from '@/content/history';
+import Photo from './Photo.astro';
+
+/** Editorial archival timeline — alternating, photo-led. */
+interface Props { moments: Moment[] }
+const { moments } = Astro.props;
+---
+
+<ol role="list" class="timeline">
+  {moments.map((m, i) => (
+    <li class:list={['moment', i % 2 && 'moment--alt', (i === 0 || i === moments.length - 1 || i === 9) && 'moment--wide']}>
+      <Photo src={m.image} alt={m.alt} ratio={m.image.height > m.image.width ? '3 / 4' : '3 / 2'} sizes="(min-width: 56em) 50vw, 100vw" class="moment__photo" />
+      <div class="moment__text" data-reveal>
+        <p class="moment__date">{m.date}</p>
+        <p class="moment__caption">{m.caption}</p>
+      </div>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .timeline { display: grid; gap: clamp(3rem, 8vw, 7rem); position: relative; }
+  .moment { display: grid; gap: 1.25rem; }
+  .moment__date { font-family: var(--display); font-size: var(--step-3); line-height: 1; letter-spacing: -0.02em; color: var(--gold); }
+  .moment__caption { margin-top: 0.75rem; font-size: var(--step-1); line-height: 1.45; max-width: 28ch; color: var(--on-night); }
+  @media (min-width: 56em) {
+    .moment { grid-template-columns: 7fr 5fr; align-items: end; gap: 3rem; }
+    .moment--alt { grid-template-columns: 5fr 7fr; }
+    .moment--alt :global(.moment__photo) { order: 2; }
+    .moment--alt .moment__text { text-align: right; justify-self: end; }
+    .moment--alt .moment__caption { margin-left: auto; }
+    .moment--wide { grid-template-columns: 1fr; }
+    .moment--wide .moment__text { text-align: left; justify-self: start; }
+    .moment--wide :global(.moment__photo) { order: 0; }
+    .moment--wide .moment__caption { margin-left: 0; max-width: 40ch; }
+    .moment :global(.moment__photo) { max-height: 80vh; }
+  }
+</style>

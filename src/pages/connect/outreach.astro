@@ -1,0 +1,112 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import NewHereCTA from '@/components/NewHereCTA.astro';
+import Icon from '@/components/Icon.astro';
+import { church } from '@/config/site';
+import { partners, specialOfferings } from '@/content/outreach';
+import ctaImg from '@/assets/photos/garden-gathering.jpg';
+---
+
+<Base title="Serve Our City" description="How Northminster loves its neighbors: Urban Youth Collaborative, New Day Urban Ministries, Serving Seniors, CCSA, military families, shelter and more.">
+  <PageHero
+    eyebrow="Outreach & mission"
+    title="Loving our neighbors <em>isn’t optional.</em>"
+    lede="Jesus asked us to care for our neighbors in need. So we partner with people already doing great work across San Diego — and we show up with time, supplies and funds."
+  >
+    <a href="#partners" class="btn btn--teal">Our partners</a>
+    <a href="#give" class="btn btn--outline">Give to outreach</a>
+  </PageHero>
+
+  <section class="section--tight" id="partners" aria-labelledby="partners-title">
+    <div class="container">
+      <h2 id="partners-title" class="visually-hidden">Our partners</h2>
+      <ul role="list" class="partners">
+        {partners.map((p) => (
+          <li class="partner" data-reveal>
+            <p class="eyebrow partner__focus">{p.focus}</p>
+            <h3 class="h3 partner__name">{p.name}</h3>
+            <div class="partner__body">
+              <p>{p.description}</p>
+              {p.howWeHelp && <p class="partner__help"><strong>How we help:</strong> {p.howWeHelp}</p>}
+              {p.url && (
+                <a href={p.url} class="link-arrow" target="_blank" rel="noopener">
+                  Visit website <Icon name="arrow-up-right" size={16} /><span class="visually-hidden"> for {p.name} (opens in a new tab)</span>
+                </a>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--night" aria-labelledby="trip-title">
+    <div class="container trip">
+      <div>
+        <p class="eyebrow trip__eyebrow" data-reveal>Mission trips</p>
+        <h2 id="trip-title" class="h2" data-reveal>Rockport, Texas. <em>Any skill level welcome.</em></h2>
+      </div>
+      <div class="prose" data-reveal>
+        <p class="lede">In 2018, Pastor Jay and members of Northminster went on an inter-generational mission trip to Rockport — one of the coastal towns hit hardest by Hurricane Harvey’s 150-mile-per-hour winds.</p>
+        <p>Hosted by First Baptist Church of Rockport, our team helped with cleanup and rebuilding and offered spiritual encouragement to a community starting over.</p>
+        <p><a href="/contact">Ask us about our next outreach trip →</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="give" aria-labelledby="give-title">
+    <div class="container">
+      <SectionHeader eyebrow="Give to outreach" title="100% goes <em>where you send it.</em>" id="give-title" align="split"
+        intro="Give through Northminster and add the organization’s name in the memo. The full amount goes to them, and it all appears on one tax statement from us.">
+        <a href={church.giving.onlineUrl} class="btn btn--teal" target="_blank" rel="noopener">Give online<span class="visually-hidden"> (opens secure giving page)</span></a>
+      </SectionHeader>
+      <div class="ways">
+        <div data-reveal><h3 class="h4">Online</h3><p class="muted">Use our secure giving page and note the organization.</p></div>
+        <div data-reveal style="--reveal-delay:1"><h3 class="h4">By check</h3><p class="muted">Payable to “NPC,” with the organization in the memo line. Mail it, drop it in the Sunday offering, or use the lock box on the office door.</p></div>
+        <div data-reveal style="--reveal-delay:2"><h3 class="h4">With supplies</h3><p class="muted">Partners often need items like school supplies or toiletries. <a href="/contact">Contact us</a> for current needs.</p></div>
+      </div>
+
+      <h3 class="eyebrow offerings__title">Special offerings through the year</h3>
+      <ul role="list" class="offerings">
+        {specialOfferings.map((o) => (
+          <li data-reveal>
+            <p class="offerings__season">{o.season}</p>
+            <h4 class="offerings__name">{o.name}</h4>
+            <p class="muted">{o.description}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <NewHereCTA image={ctaImg} imageAlt="Neighbors gathered in the community garden beneath the arbor" title="Serve alongside us. <em>Start Sunday.</em>" />
+</Base>
+
+<style>
+  .partners { display: grid; border-top: 1.5px solid var(--ink); }
+  .partner { display: grid; gap: 0.75rem 3rem; padding-block: 2.25rem; border-bottom: 1px solid var(--line); }
+  @media (min-width: 60em) {
+    .partner { grid-template-columns: 11rem 1fr 1.3fr; align-items: start; }
+  }
+  .partner__focus { color: var(--ember); font-size: 0.75rem; padding-top: 0.6rem; }
+  .partner__body { display: grid; gap: 0.9rem; justify-items: start; color: var(--muted); }
+  .partner__help { color: var(--ink); }
+
+  .trip { display: grid; gap: 2rem; }
+  @media (min-width: 56em) { .trip { grid-template-columns: 1fr 1.1fr; gap: 5rem; } }
+  .trip__eyebrow { color: var(--gold); margin-bottom: 1rem; }
+
+  .ways { display: grid; gap: 2rem; }
+  @media (min-width: 56em) { .ways { grid-template-columns: repeat(3, 1fr); } }
+  .ways > div { border-top: 1.5px solid var(--ink); padding-top: 1.25rem; display: grid; gap: 0.5rem; }
+  .ways a { color: var(--teal); font-weight: 600; }
+  .offerings__title { margin-block: var(--space-xl) 1.5rem; color: var(--muted); }
+  .offerings { display: grid; gap: 1.5rem; }
+  @media (min-width: 40em) { .offerings { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 64em) { .offerings { grid-template-columns: repeat(4, 1fr); } }
+  .offerings li { background: var(--sand); padding: 1.5rem; border-radius: var(--radius); display: grid; gap: 0.4rem; align-content: start; }
+  .offerings__season { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); }
+  .offerings__name { font-family: var(--display); font-size: var(--step-1); font-weight: 450; line-height: 1.2; }
+</style>

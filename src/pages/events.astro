@@ -1,0 +1,99 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import FactList from '@/components/FactList.astro';
+import Photo from '@/components/Photo.astro';
+import Icon from '@/components/Icon.astro';
+import { upcomingEvents, weeklyRhythm } from '@/content/events';
+import { church } from '@/config/site';
+import { formatWeekday, formatDate, formatTimeRange, toInstant, formatMonthShort, formatDayNum } from '@/lib/dates';
+
+const list = upcomingEvents();
+---
+
+<Base title="Events" description="What’s happening at Northminster: Parents Night Out, Wednesday Family Nights, Monday Movie Nights, Second Sunday Café and more.">
+  <PageHero
+    eyebrow="Events"
+    title="Pull up <em>a chair.</em>"
+    lede="Dinners, movie nights, a night off for parents and plenty of coffee. Everything here is open to you — first-timers included."
+  >
+    <a href={church.links.calendar} class="btn btn--outline" target="_blank" rel="noopener"><Icon name="calendar" size={18} /> Full calendar<span class="visually-hidden"> (Google Calendar, opens in a new tab)</span></a>
+  </PageHero>
+
+  <section class="section--tight" aria-labelledby="upcoming-title">
+    <div class="container">
+      <h2 id="upcoming-title" class="eyebrow upcoming__label">Coming up</h2>
+      {list.length === 0 && <p class="lede">New events are posted soon. In the meantime, the weekly rhythm below never stops.</p>}
+      <ol role="list" class="elist">
+        {list.map((e) => (
+          <li class="erow" id={e.slug} data-ends={toInstant(e.end)} data-reveal>
+            <p class="erow__date" aria-hidden="true">
+              <span class="erow__month">{formatMonthShort(e.start)}</span>
+              <span class="erow__day">{formatDayNum(e.start)}</span>
+            </p>
+            <div class="erow__main">
+              <p class="eyebrow erow__when">{formatWeekday(e.start)}, {formatDate(e.start)} · {e.timeLabel ?? formatTimeRange(e.start, e.end)}</p>
+              <h3 class="h3">{e.title}</h3>
+              <p class="lede erow__summary">{e.summary}</p>
+              <FactList items={[
+                { label: 'Where', value: e.location },
+                ...(e.audience ? [{ label: 'For', value: e.audience }] : []),
+                ...(e.cost ? [{ label: 'Cost', value: e.cost }] : []),
+              ]} />
+              {e.details && <ul class="erow__details">{e.details.map((d) => <li>{d}</li>)}</ul>}
+              {e.cta && <a href={e.cta.href} class="btn btn--teal btn--sm">{e.cta.label}</a>}
+            </div>
+            {e.image && <Photo src={e.image} alt={e.imageAlt ?? ''} ratio="4 / 3" sizes="(min-width: 64em) 30vw, 100vw" class="erow__photo" />}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--night" aria-labelledby="rhythm-title">
+    <div class="container">
+      <SectionHeader eyebrow="Every week" title="The rhythm of <em>church life.</em>" id="rhythm-title" align="split"
+        intro="Can’t make a special event? These happen week in, week out." />
+      <ul role="list" class="rhythm">
+        {weeklyRhythm.map((r) => (
+          <li data-reveal>
+            <a href={r.href ?? '#'}>
+              <span class="rhythm__day">{r.day}</span>
+              <span class="rhythm__title">{r.title}</span>
+              <span class="rhythm__time">{r.time}</span>
+              <span class="rhythm__desc">{r.description}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .upcoming__label { color: var(--ember); margin-bottom: 1.5rem; }
+  .elist { border-top: 1.5px solid var(--ink); }
+  .erow { display: grid; gap: 1.25rem; padding-block: var(--space-l); border-bottom: 1px solid var(--line); scroll-margin-top: 7rem; }
+  @media (min-width: 64em) { .erow { grid-template-columns: 6rem 1fr 26rem; gap: 3rem; align-items: start; } }
+  .erow:target { background: linear-gradient(to right, var(--sand), transparent); }
+  .erow__date { display: grid; justify-items: start; line-height: 1; }
+  .erow__month { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); }
+  .erow__day { font-family: var(--display); font-size: var(--step-5); letter-spacing: -0.04em; }
+  .erow__main { display: grid; gap: 0.75rem; justify-items: start; }
+  .erow__when { color: var(--ember); font-size: 0.75rem; }
+  .erow__summary { color: var(--muted); }
+  .erow :global(.facts) { width: 100%; margin-block: 0.5rem; }
+  .erow__details { padding-left: 1.2em; color: var(--muted); }
+  .erow__details li + li { margin-top: 0.25rem; }
+
+  .rhythm { border-top: 1px solid var(--line-night); }
+  .rhythm li { border-bottom: 1px solid var(--line-night); }
+  .rhythm a { display: grid; gap: 0.35rem 2rem; padding-block: 1.5rem; text-decoration: none; }
+  @media (min-width: 56em) { .rhythm a { grid-template-columns: 8rem 1fr 11rem 1.5fr; align-items: baseline; } }
+  .rhythm__day { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+  .rhythm__title { font-family: var(--display); font-size: var(--step-3); font-weight: 380; letter-spacing: -0.02em; line-height: 1.05; }
+  .rhythm a:hover .rhythm__title { text-decoration: underline; text-decoration-thickness: 1px; }
+  .rhythm__time { font-weight: 600; }
+  .rhythm__desc { color: var(--on-night-muted); }
+</style>

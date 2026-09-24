@@ -1,0 +1,81 @@
+---
+import Base from '@/layouts/Base.astro';
+import VideoPlayer from '@/components/VideoPlayer.astro';
+import MessageCard from '@/components/MessageCard.astro';
+import Icon from '@/components/Icon.astro';
+import { sermons, sermonArchiveUrl } from '@/content/sermons';
+import { church } from '@/config/site';
+import { formatDate } from '@/lib/dates';
+
+const [latest, ...rest] = sermons;
+---
+
+<Base title="Messages" description="Watch or listen to recent Sunday messages from Northminster Presbyterian Church in San Diego. Currently preaching through the Gospel of Matthew.">
+  <section class="section section--night mhero" aria-labelledby="latest-title">
+    <div class="container">
+      <div class="mhero__head">
+        <p class="eyebrow mhero__eyebrow">Messages</p>
+        <h1 class="h1">Watch <em>&amp; listen.</em></h1>
+        <p class="lede muted">Every Sunday service is recorded. We’re currently working through the Gospel of Matthew, one passage at a time.</p>
+      </div>
+
+      <div class="mhero__feature">
+        <VideoPlayer sermon={latest} />
+        <div class="mhero__info">
+          <p class="eyebrow mhero__label">Latest · <time datetime={latest.date}>{formatDate(latest.date)}</time></p>
+          <h2 id="latest-title" class="h2">{latest.title}</h2>
+          <p class="mhero__meta">{latest.speaker}{latest.scripture && <> · {latest.scripture}</>}</p>
+          <div class="btn-row">
+            <a href={`/messages/${latest.slug}`} class="btn btn--light">Message details <Icon name="arrow" size={18} class="btn__arrow" /></a>
+            {latest.audioUrl && <a href={`/messages/${latest.slug}#listen`} class="btn btn--outline-light"><Icon name="headphones" size={18} /> Listen</a>}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="recent-title">
+    <div class="container">
+      <div class="recent__head">
+        <h2 id="recent-title" class="h3">Recent messages</h2>
+        <a href={sermonArchiveUrl} class="link-arrow" target="_blank" rel="noopener">Older recordings <Icon name="arrow-up-right" size={16} /><span class="visually-hidden"> (on our previous website, opens in a new tab)</span></a>
+      </div>
+      <div class="recent">
+        {rest.map((s) => <MessageCard sermon={s} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section--tight section--sand" aria-labelledby="live-title">
+    <div class="container live">
+      <div>
+        <p class="eyebrow live__eyebrow">Join live</p>
+        <h2 id="live-title" class="h3">Sundays at 10 AM — in person or on Zoom.</h2>
+      </div>
+      <p class="muted">Want to be part of it as it happens? Come to the sanctuary, or ask the office for the Zoom link.</p>
+      <div class="btn-row">
+        <a href="/visit" class="btn btn--teal">Plan your visit</a>
+        <a href={`mailto:${church.email}?subject=Zoom%20link%20for%20Sunday%20worship`} class="btn btn--outline">Request Zoom link</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .mhero { padding-top: clamp(3.5rem, 7vw, 6rem); }
+  .mhero__head { display: grid; gap: 1.25rem; margin-bottom: var(--space-xl); max-width: 50rem; }
+  .mhero__eyebrow, .mhero__label { color: var(--gold); }
+  .mhero__feature { display: grid; gap: var(--space-l); align-items: end; }
+  @media (min-width: 64em) { .mhero__feature { grid-template-columns: 1.6fr 1fr; gap: var(--space-xl); } }
+  .mhero__info { display: grid; gap: 1.1rem; justify-items: start; }
+  .mhero__meta { color: var(--on-night-muted); }
+
+  .recent__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 1rem; margin-bottom: var(--space-l); }
+  .recent { display: grid; gap: 3rem 1.5rem; }
+  @media (min-width: 40em) { .recent { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 64em) { .recent { grid-template-columns: repeat(3, 1fr); } }
+
+  .live { display: grid; gap: 1.5rem; align-items: center; }
+  @media (min-width: 64em) { .live { grid-template-columns: 1.2fr 1fr auto; gap: 3rem; } }
+  .live__eyebrow { color: var(--ember); margin-bottom: 0.5rem; }
+</style>

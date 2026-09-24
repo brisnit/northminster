@@ -1,0 +1,58 @@
+---
+import type { Sermon } from '@/content/sermons';
+import MessageArt from './MessageArt.astro';
+import Icon from './Icon.astro';
+
+/**
+ * Click-to-load YouTube player. Nothing from YouTube loads until the visitor
+ * presses play (privacy-enhanced domain), which keeps pages fast.
+ * Without JavaScript the link simply opens the video on YouTube.
+ */
+interface Props { sermon: Sermon }
+const { sermon } = Astro.props;
+const id = sermon.youtubeId;
+---
+
+{id ? (
+  <div class="player" data-player>
+    <a class="player__facade" href={`https://www.youtube.com/watch?v=${id}`} data-yt={id} data-title={sermon.title}>
+      <MessageArt sermon={sermon} size="lg" />
+      <span class="player__play"><Icon name="play" size={28} /></span>
+      <span class="visually-hidden">Play video: {sermon.title}</span>
+    </a>
+  </div>
+) : (
+  <MessageArt sermon={sermon} size="lg" />
+)}
+
+<script>
+  document.querySelectorAll<HTMLAnchorElement>('[data-yt]').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${link.dataset.yt}?autoplay=1&rel=0`;
+      iframe.title = `Video: ${link.dataset.title}`;
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      link.replaceWith(iframe);
+      iframe.focus();
+    });
+  });
+</script>
+
+<style>
+  .player { position: relative; aspect-ratio: 16 / 9; background: var(--night); border-radius: var(--radius); overflow: hidden; }
+  .player__facade { position: absolute; inset: 0; display: block; }
+  .player :global(iframe) { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .player__play {
+    position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+    display: grid; place-items: center;
+    width: clamp(4rem, 9vw, 5.5rem); aspect-ratio: 1;
+    padding-left: 0.2rem;
+    border-radius: 50%;
+    background: var(--paper); color: var(--ink);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+    transition: transform 0.35s var(--ease), background-color 0.25s;
+  }
+  .player__facade:hover .player__play { transform: scale(1.08); background: var(--gold); }
+</style>

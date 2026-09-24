@@ -1,0 +1,51 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+
+/**
+ * Responsive photo: AVIF + WebP at sensible widths, lazy by default.
+ * Use `priority` for the LCP image (hero), which also disables the reveal.
+ */
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+  sizes?: string;
+  widths?: number[];
+  ratio?: string; // e.g. "4 / 5"
+  position?: string; // object-position
+  priority?: boolean;
+  reveal?: boolean;
+  zoom?: boolean;
+  class?: string;
+}
+
+const {
+  src, alt, sizes = '100vw', widths, ratio, position = 'center', priority = false,
+  reveal = true, zoom = false, class: className,
+} = Astro.props;
+
+const maxW = src.width;
+const candidates = widths ?? [480, 720, 960, 1280, 1600, 2000];
+const w = candidates.filter((x) => x <= maxW);
+if (!w.length || w[w.length - 1] < maxW && maxW <= 2000) w.push(maxW);
+---
+
+<div
+  class:list={['media', zoom && 'media--zoom', className]}
+  style={ratio ? `aspect-ratio: ${ratio}` : undefined}
+  data-reveal={reveal && !priority ? 'image' : undefined}
+>
+  <Picture
+    src={src}
+    alt={alt}
+    widths={w}
+    sizes={sizes}
+    formats={['webp']}
+    fallbackFormat="webp"
+    quality={62}
+    loading={priority ? 'eager' : 'lazy'}
+    decoding={priority ? 'sync' : 'async'}
+    fetchpriority={priority ? 'high' : undefined}
+    style={`object-position: ${position}`}
+  />
+</div>

@@ -1,0 +1,85 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import FeatureSplit from '@/components/FeatureSplit.astro';
+import FactList from '@/components/FactList.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import NewHereCTA from '@/components/NewHereCTA.astro';
+import NeedsInfo from '@/components/NeedsInfo.astro';
+import Icon from '@/components/Icon.astro';
+import { church } from '@/config/site';
+
+import heroImg from '@/assets/photos/kitchen-baking.jpg';
+import familyImg from '@/assets/photos/kitchen-volunteers.jpg';
+import treatsImg from '@/assets/photos/fall-treats.jpg';
+import ctaImg from '@/assets/photos/member-smiling.jpg';
+
+const more = [
+  { title: 'Men’s Study', when: 'Saturday mornings, 8 – 9 AM', body: 'An hour of study and conversation to start the weekend.' },
+  { title: 'Women’s Study', when: 'Saturday mornings, 8:30 – 10 AM', body: 'Study, prayer and friendship over a relaxed Saturday morning.' },
+  { title: 'Seasonal devotionals', when: 'Weekdays at 8 AM on Zoom', body: 'During Advent and Lent we gather online each weekday morning for a short devotional.' },
+];
+---
+
+<Base title="Adults & Groups" description="Wednesday Family Nights with dinner and Bible study, Monday Movie Nights, men’s and women’s studies, and seasonal devotionals at Northminster." header="overlay">
+  <PageHero
+    eyebrow="Adults & groups"
+    title="Grow in faith <em>around a table.</em>"
+    lede="Bible study with the pastor, dinner with friends, a movie on Monday. The best conversations about faith usually happen over food."
+    image={heroImg}
+    imageAlt="Two women smiling as they bake together in the church kitchen"
+    position="50% 35%"
+  />
+
+  <section class="section" aria-label="Adult groups">
+    <div class="container">
+      <FeatureSplit id="family-nights" eyebrow="Wednesdays, 5:30 – 7:30 PM" title="Wednesday <em>Family Nights</em>" image={familyImg} imageAlt="Volunteers laughing while preparing dinner in the church kitchen">
+        <p class="lede">A home-cooked dinner at 5:30, followed by Bible study with the pastor while the kids have groups of their own.</p>
+        <FactList items={[
+          { label: 'Dinner', value: '5:30 PM' },
+          { label: 'Bible study', value: '6:00 PM' },
+          { label: 'Who', value: 'All ages welcome' },
+        ]} />
+        <p>Every Wednesday during the school year, with a break for summer. Come once and you’ll see why people keep coming back.</p>
+        <Fragment slot="actions">
+          <a href={`mailto:${church.youthEmail}?subject=Wednesday%20Family%20Night`} class="btn btn--teal"><Icon name="mail" size={18} /> Ask Alison a question</a>
+        </Fragment>
+      </FeatureSplit>
+
+      <FeatureSplit id="movie-nights" eyebrow="Mondays, 5:30 PM" title="Monday <em>Movie Nights</em>" image={treatsImg} imageAlt="A volunteer stands beside a table of treats during a church gathering" reverse>
+        <p class="lede">A faith-filled film, good company and a comfortable seat in the lounge.</p>
+        <p>Bring a snack to share. Stay for the conversation afterward — or don’t. Either way, it’s a great low-key first step into church life.</p>
+        <NeedsInfo note="Start time appears as both 5 PM and 5:30 PM on the current site — confirm" />
+        <Fragment slot="actions">
+          <a href="/events" class="btn btn--outline">This week’s movie night</a>
+        </Fragment>
+      </FeatureSplit>
+    </div>
+  </section>
+
+  <section class="section section--sand" aria-labelledby="more-title">
+    <div class="container">
+      <SectionHeader eyebrow="More ways to grow" title="Study, pray, <em>repeat.</em>" id="more-title" align="split"
+        intro="Dates change month to month, so check the events page or call the office for what’s next." />
+      <ul role="list" class="more">
+        {more.map((m, i) => (
+          <li data-reveal style={`--reveal-delay:${i}`}>
+            <p class="eyebrow more__when">{m.when}</p>
+            <h3 class="h3">{m.title}</h3>
+            <p class="muted">{m.body}</p>
+          </li>
+        ))}
+      </ul>
+      <NeedsInfo note="Confirm how often the men’s and women’s studies meet (only single September dates were listed)" />
+    </div>
+  </section>
+
+  <NewHereCTA image={ctaImg} imageAlt="A longtime member smiling on the church patio" title="Start with <em>Sunday.</em>" body="Groups are easier when you already know a few faces. Come to worship at 10, stay for coffee, and ask anyone about Wednesday nights." />
+</Base>
+
+<style>
+  .more { display: grid; gap: 2.5rem 2rem; margin-bottom: 1.5rem; }
+  @media (min-width: 56em) { .more { grid-template-columns: repeat(3, 1fr); } }
+  .more li { border-top: 1.5px solid var(--ink); padding-top: 1.25rem; display: grid; gap: 0.6rem; }
+  .more__when { color: var(--ember); font-size: 0.75rem; }
+</style>

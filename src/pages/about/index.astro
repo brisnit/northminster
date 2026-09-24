@@ -1,0 +1,153 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import FeatureSplit from '@/components/FeatureSplit.astro';
+import NewHereCTA from '@/components/NewHereCTA.astro';
+import NeedsInfo from '@/components/NeedsInfo.astro';
+import Photo from '@/components/Photo.astro';
+import Icon from '@/components/Icon.astro';
+import { church } from '@/config/site';
+import { staff } from '@/content/staff';
+
+import heroImg from '@/assets/photos/garden-gathering.jpg';
+import sanctuaryImg from '@/assets/photos/sanctuary-scripture-reading.jpg';
+import historyImg from '@/assets/history/slide-25.jpg';
+import ctaImg from '@/assets/photos/kitchen-baking.jpg';
+---
+
+<Base title="About" description="Northminster is a small, close-knit, multi-generational Presbyterian church in Clairemont, San Diego — here since 1953." header="overlay">
+  <PageHero
+    eyebrow="About Northminster"
+    title="A small church <em>with a big table.</em>"
+    lede="We love God and our neighbors as ourselves. Everything else is how we try to live that out — together."
+    image={heroImg}
+    imageAlt="Neighbors gathered at picnic tables beneath a vine-covered arbor in Northminster’s community garden"
+    position="50% 60%"
+  />
+
+  <section class="section" aria-labelledby="who-title">
+    <div class="container">
+      <div class="who">
+        <p class="eyebrow who__eyebrow" data-reveal>Who we are</p>
+        <h2 id="who-title" class="who__statement" data-reveal>
+          We’re about 115 members, with 50 to 60 of us in worship on a typical Sunday. Small — and <em>close-knit on purpose.</em>
+        </h2>
+        <div class="who__cols">
+          <p class="lede" data-reveal>We’re a multi-generational church of families, empty-nesters and retirees who are devoted to the gospel, deeply care for one another, and try to be a shining example of Jesus’ teachings right here in Clairemont.</p>
+          <div class="prose" data-reveal>
+            <p>Our worship blends contemporary music with traditional elements. Some of us fondly remember the formality of robes and the organ, and we honor that. But to be relevant to our community — and to a new generation — we work to relate the teachings of Jesus to the world we actually live in.</p>
+            <p>You’ll find us in the sanctuary on Sunday mornings, around the dinner table on Wednesday nights, in the garden on Saturdays, and out in the city with our partners who serve seniors, students, refugees, military families and neighbors experiencing homelessness.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section--tight section--teal mission" aria-labelledby="mission-title">
+    <div class="container container--narrow">
+      <h2 id="mission-title" class="eyebrow mission__eyebrow" data-reveal>Why we exist</h2>
+      <blockquote data-reveal>
+        <p class="mission__quote">We are a community of God’s people who seek to worship and serve the living God as revealed through the teachings of Jesus Christ. Our aim is to grow in the faith, support one another, and share our witness of Jesus Christ throughout our community and the world.</p>
+      </blockquote>
+    </div>
+  </section>
+
+  <section class="section" id="beliefs" aria-labelledby="beliefs-title">
+    <div class="container">
+      <FeatureSplit
+        eyebrow="What we believe"
+        title="Rooted in Scripture. <em>Centered on Jesus.</em>"
+        image={sanctuaryImg}
+        imageAlt="A young girl reads scripture from the lectern during Sunday worship"
+        ratio="4 / 3"
+      >
+        <p id="beliefs-title" class="lede">Northminster is a member church of the {church.denomination}, part of the {church.presbytery}.</p>
+        <ul>
+          <li><strong>God.</strong> We seek to worship and serve the living God, as revealed through the teachings of Jesus Christ.</li>
+          <li><strong>Scripture.</strong> We gather around God’s Word. Our pastor is currently preaching through the Gospel of Matthew, passage by passage.</li>
+          <li><strong>The table.</strong> We celebrate communion on the first Sunday of every month — and our kids come back from Sunday School to share it with us.</li>
+          <li><strong>Grace.</strong> We try to live out grace and to love others unconditionally, as Christ modeled.</li>
+          <li><strong>Our neighbors.</strong> Loving God and loving our neighbors belong together.</li>
+        </ul>
+        <p>As a Presbyterian church, we share the confessions and governance of the PC(USA). Our congregation is led by our pastor together with elected elders (the session) and deacons.</p>
+        <NeedsInfo note="Northminster to review, or supply a fuller statement of faith" />
+        <Fragment slot="actions">
+          <a href="https://www.pcusa.org/who-we-are/what-we-believe" class="btn btn--outline" target="_blank" rel="noopener">What Presbyterians believe <Icon name="external" size={16} /><span class="visually-hidden"> (pcusa.org, opens in a new tab)</span></a>
+        </Fragment>
+      </FeatureSplit>
+    </div>
+  </section>
+
+  <section class="section section--sand" aria-labelledby="leaders-title">
+    <div class="container">
+      <SectionHeader eyebrow="Leadership" title="The people <em>who’ll say hello.</em>" align="split" id="leaders-title">
+        <a href="/about/leadership" class="btn btn--outline">Meet our staff <Icon name="arrow" size={18} class="btn__arrow" /></a>
+      </SectionHeader>
+      <ul role="list" class="leaders">
+        {staff.map((p, i) => (
+          <li data-reveal style={`--reveal-delay:${i}`}>
+            <a href={`/about/leadership#${p.name.toLowerCase().replace(/[^a-z]+/g, '-')}`}>
+              <Photo src={p.photo} alt={p.photoAlt} ratio="4 / 5" position="50% 25%" sizes="(min-width: 56em) 30vw, 90vw" widths={[400, 640, 900]} zoom reveal={false} />
+              <p class="eyebrow leaders__role">{p.role}</p>
+              <h3 class="h4">{p.name}</h3>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section section--night" aria-labelledby="history-title">
+    <div class="container">
+      <FeatureSplit
+        eyebrow="Our story"
+        title="Worshiping in Clairemont <em>since 1953.</em>"
+        image={historyImg}
+        imageAlt="Northminster’s newly finished mid-century sanctuary with its dark, tented roof in March 1965"
+        ratio="3 / 2"
+        reverse
+      >
+        <p id="history-title">It started with a few neighbors meeting in a Clairemont duplex in December 1953, led by founding pastor Rev. Howard Congdon. They broke ground on a permanent home in 1954, worshiped in Fellowship Hall for a decade, and dedicated the sanctuary we still gather in on April 4, 1965.</p>
+        <Fragment slot="actions">
+          <a href="/about/story" class="btn btn--light">See the early days <Icon name="arrow" size={18} class="btn__arrow" /></a>
+        </Fragment>
+      </FeatureSplit>
+    </div>
+  </section>
+
+  <section class="section--tight preschool" aria-labelledby="preschool-title">
+    <div class="container preschool__inner">
+      <div>
+        <p class="eyebrow preschool__eyebrow">Also on our campus</p>
+        <h2 id="preschool-title" class="h3">Northminster Preschool</h2>
+      </div>
+      <p class="muted">Led by director Sharon Halle, our preschool has been caring for Clairemont’s youngest learners and their families for years.</p>
+      <a href={church.links.preschool} class="btn btn--outline" target="_blank" rel="noopener">Visit the preschool site <Icon name="external" size={16} /><span class="visually-hidden"> (opens in a new tab)</span></a>
+    </div>
+  </section>
+
+  <NewHereCTA image={ctaImg} imageAlt="Two women smiling as they bake together in the church kitchen" />
+</Base>
+
+<style>
+  .who__eyebrow { color: var(--ember); margin-bottom: 1.5rem; }
+  .who__statement { font-family: var(--display); font-weight: 350; font-size: clamp(1.85rem, 1.1rem + 3vw, 4.25rem); line-height: 1.08; letter-spacing: -0.028em; max-width: 22ch; }
+  .who__statement em { color: var(--teal); }
+  .who__cols { display: grid; gap: 2rem; margin-top: var(--space-xl); }
+  @media (min-width: 56em) { .who__cols { grid-template-columns: 1fr 1fr; gap: 5rem; } }
+
+  .mission__eyebrow { color: var(--gold); margin-bottom: 1.5rem; }
+  .mission__quote { font-family: var(--display); font-size: var(--step-3); font-weight: 340; line-height: 1.15; letter-spacing: -0.02em; }
+
+  .leaders { display: grid; gap: 2.5rem 1.5rem; }
+  @media (min-width: 40em) { .leaders { grid-template-columns: repeat(3, 1fr); } }
+  .leaders a { display: grid; text-decoration: none; }
+  .leaders__role { color: var(--ember); margin-block: 1.25rem 0.4rem; font-size: 0.75rem; }
+  .leaders a:hover h3 { text-decoration: underline; text-decoration-thickness: 1px; }
+
+  .preschool { border-top: 1px solid var(--line); }
+  .preschool__inner { display: grid; gap: 1.25rem; align-items: center; }
+  @media (min-width: 64em) { .preschool__inner { grid-template-columns: 1fr 1.3fr auto; gap: 3rem; } }
+  .preschool__eyebrow { color: var(--ember); margin-bottom: 0.5rem; }
+</style>

@@ -1,0 +1,28 @@
+---
+/**
+ * A clearly-marked, replaceable stand-in where Northminster has no real photo yet.
+ * Describes the shot needed so a volunteer photographer knows what to capture.
+ */
+interface Props { shot: string; ratio?: string; tone?: 'sand' | 'night' | 'teal'; class?: string }
+const { shot, ratio = '4 / 3', tone = 'sand', class: className } = Astro.props;
+---
+
+<div class:list={['placeholder', `placeholder--${tone}`, className]} style={`aspect-ratio:${ratio}`} role="img" aria-label={`Photo coming soon: ${shot}`}>
+  <svg viewBox="0 0 32 40" aria-hidden="true"><path d="M16 1 31 39H19.2L16 16.5 12.8 39H1L16 1Z" fill="currentColor" /></svg>
+  <p><span class="eyebrow">Photo needed</span><span>{shot}</span></p>
+</div>
+
+<style>
+  .placeholder {
+    position: relative; display: grid; place-items: end start; padding: 1.25rem;
+    border-radius: var(--radius); overflow: hidden;
+    background:
+      repeating-linear-gradient(135deg, transparent 0 14px, rgb(0 0 0 / 0.035) 14px 15px),
+      var(--stone);
+    color: var(--muted);
+  }
+  .placeholder--night { background: repeating-linear-gradient(135deg, transparent 0 14px, rgb(255 255 255 / 0.04) 14px 15px), var(--night-2); color: var(--on-night-muted); }
+  .placeholder--teal { background: repeating-linear-gradient(135deg, transparent 0 14px, rgb(255 255 255 / 0.05) 14px 15px), var(--teal-deep); color: #cfe3df; }
+  svg { position: absolute; top: 50%; left: 50%; width: 22%; max-width: 5rem; translate: -50% -60%; opacity: 0.22; }
+  p { position: relative; display: grid; gap: 0.3rem; font-size: var(--step--1); line-height: 1.35; max-width: 26ch; }
+</style>

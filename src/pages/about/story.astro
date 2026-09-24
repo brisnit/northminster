@@ -1,0 +1,41 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Timeline from '@/components/Timeline.astro';
+import NewHereCTA from '@/components/NewHereCTA.astro';
+import { history } from '@/content/history';
+import heroImg from '@/assets/history/slide-11.jpg';
+import ctaImg from '@/assets/photos/sanctuary-congregation.jpg';
+---
+
+<Base title="Our Story" description="From a Clairemont duplex in 1953 to the mid-century sanctuary dedicated in 1965 — the early days of Northminster Presbyterian Church, in archival photos." header="overlay">
+  <PageHero
+    eyebrow="Our story · 1953 – 1965"
+    title="It started in <em>a living room.</em>"
+    lede="In December 1953, a handful of neighbors on the brand-new Clairemont mesa started meeting in a duplex. Here’s how they built a church — in their own photographs."
+    image={heroImg}
+    imageAlt="A crowd gathers beneath the church’s tall A-frame marker for the sanctuary ground breaking in July 1964"
+    position="50% 55%"
+  />
+
+  <section class="section section--night" aria-label="Timeline of the early days">
+    <div class="container">
+      <Timeline moments={history} />
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="still-title">
+    <div class="container container--narrow still">
+      <p class="eyebrow still__eyebrow" data-reveal>Still here</p>
+      <h2 id="still-title" class="h2" data-reveal>Same sanctuary. <em>Same idea.</em></h2>
+      <p class="lede" data-reveal>More than sixty years later, we still worship under that tented roof, still linger over coffee after the service, and still believe a church should be a good neighbor to Clairemont. There’s a seat for you in the next chapter.</p>
+    </div>
+  </section>
+
+  <NewHereCTA image={ctaImg} imageAlt="Today’s congregation seated in the same 1965 sanctuary beneath its stained glass" />
+</Base>
+
+<style>
+  .still { display: grid; gap: 1.5rem; }
+  .still__eyebrow { color: var(--ember); }
+</style>

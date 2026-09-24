@@ -1,0 +1,101 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import NeedsInfo from '@/components/NeedsInfo.astro';
+import Icon from '@/components/Icon.astro';
+import { church } from '@/config/site';
+import { specialOfferings } from '@/content/outreach';
+---
+
+<Base title="Give" description="Give to Northminster Presbyterian Church online, by check, or in person. Every gift supports worship, families and our neighbors across San Diego.">
+  <PageHero
+    eyebrow="Give"
+    title="Ordinary gifts. <em>Extraordinary ways.</em>"
+    lede="Giving is an act of worship — a joyful response to what God has done. Northminster exists entirely through the generosity of people who want to serve God in our community, our city and the world."
+  >
+    <a href={church.giving.onlineUrl} class="btn btn--teal" target="_blank" rel="noopener">Give online <Icon name="arrow-up-right" size={18} /><span class="visually-hidden"> (opens our secure giving page)</span></a>
+  </PageHero>
+
+  <section class="section--tight" aria-labelledby="ways-title">
+    <div class="container">
+      <h2 id="ways-title" class="visually-hidden">Ways to give</h2>
+      <div class="ways">
+        <article class="way way--primary" data-reveal>
+          <p class="eyebrow">Online</p>
+          <h3 class="h3">Safe, simple &amp; secure.</h3>
+          <p>Make a one-time gift or pledge through our secure online giving page.</p>
+          <a href={church.giving.onlineUrl} class="btn btn--light" target="_blank" rel="noopener">Give online<span class="visually-hidden"> (opens in a new tab)</span></a>
+        </article>
+        <article class="way" data-reveal style="--reveal-delay:1">
+          <p class="eyebrow">By check</p>
+          <h3 class="h3">Mail it to us.</h3>
+          <p>Make your check payable to “{church.giving.checkPayableTo}” and mail it to:</p>
+          <address class="way__address">{church.giving.checkPayableTo}<br />{church.address.street}<br />{church.address.city}, {church.address.region} {church.address.postalCode}</address>
+          <NeedsInfo note="The current Give page lists ZIP 92124; everywhere else says 92117 — confirm the mailing ZIP" />
+        </article>
+        <article class="way" data-reveal style="--reveal-delay:2">
+          <p class="eyebrow">In person</p>
+          <h3 class="h3">On Sunday.</h3>
+          <p>Place your gift in the offering during worship, or drop a check in the lock box on the church office door any time.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--sand" aria-labelledby="designated-title">
+    <div class="container designated">
+      <div>
+        <p class="eyebrow designated__eyebrow" data-reveal>Designated giving</p>
+        <h2 id="designated-title" class="h2" data-reveal>Give to a partner <em>through us.</em></h2>
+      </div>
+      <div class="prose" data-reveal>
+        <p class="lede">Want to support one of our outreach partners? Give through Northminster and note the organization’s name in the memo line — the full amount goes to them.</p>
+        <p>Your gift appears on one central Northminster giving statement for tax purposes, saves our partners the time and cost of issuing statements, and helps us understand how much our church gives to mission.</p>
+        <p><a href="/connect/outreach">See our outreach partners →</a></p>
+      </div>
+    </div>
+    <div class="container">
+      <ul role="list" class="offerings">
+        {specialOfferings.map((o) => (
+          <li data-reveal>
+            <p class="offerings__season">{o.season}</p>
+            <h3 class="offerings__name">{o.name}</h3>
+            <p class="muted">{o.description}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section--tight" aria-labelledby="thanks-title">
+    <div class="container container--narrow thanks">
+      <h2 id="thanks-title" class="h3">Thank you — and may God bless you richly for your generosity.</h2>
+      <p class="muted">Questions about giving or your giving statement? Call <a href={church.phoneHref}>{church.phone}</a> or email <a href={`mailto:${church.email}`}>{church.email}</a>.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .ways { display: grid; gap: 1.5rem; }
+  @media (min-width: 60em) { .ways { grid-template-columns: 1.2fr 1fr 1fr; } }
+  .way { display: grid; gap: 0.9rem; align-content: start; justify-items: start; padding: clamp(1.75rem, 3vw, 2.75rem); border: 1px solid var(--line); border-radius: var(--radius); }
+  .way .eyebrow { color: var(--ember); }
+  .way p:not(.eyebrow) { color: var(--muted); }
+  .way--primary { background: var(--teal); color: var(--on-night); border-color: var(--teal); }
+  .way--primary .eyebrow { color: var(--gold); }
+  .way--primary p:not(.eyebrow) { color: #d7e8e5; }
+  .way__address { font-weight: 600; line-height: 1.5; }
+
+  .designated { display: grid; gap: 2rem; margin-bottom: var(--space-xl); }
+  @media (min-width: 56em) { .designated { grid-template-columns: 1fr 1.1fr; gap: 5rem; } }
+  .designated__eyebrow { color: var(--ember); margin-bottom: 1rem; }
+  .offerings { display: grid; gap: 1.5rem; }
+  @media (min-width: 40em) { .offerings { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 64em) { .offerings { grid-template-columns: repeat(4, 1fr); } }
+  .offerings li { background: var(--paper); padding: 1.5rem; border-radius: var(--radius); display: grid; gap: 0.4rem; align-content: start; }
+  .offerings__season { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); }
+  .offerings__name { font-family: var(--display); font-size: var(--step-1); font-weight: 450; line-height: 1.2; }
+
+  .thanks { display: grid; gap: 1rem; text-align: center; justify-items: center; }
+  .thanks a { color: var(--teal); font-weight: 600; }
+</style>

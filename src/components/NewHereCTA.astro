@@ -1,0 +1,47 @@
+---
+import { church } from '@/config/site';
+import type { ImageMetadata } from 'astro';
+import Photo from './Photo.astro';
+import Icon from './Icon.astro';
+
+/** The closing invitation used near the bottom of most pages. */
+interface Props {
+  image: ImageMetadata;
+  imageAlt: string;
+  title?: string;
+  body?: string;
+}
+const {
+  image, imageAlt,
+  title = 'New to Northminster? <em>We’d love to meet you.</em>',
+  body = 'You don’t have to have it all figured out. Come as a guest, sit wherever you like, and let us bring you a cup of coffee.',
+} = Astro.props;
+---
+
+<section class="newhere section--teal" aria-labelledby="newhere-title">
+  <div class="container newhere__grid">
+    <div class="newhere__text">
+      <p class="eyebrow newhere__eyebrow" data-reveal>Sundays at 10 AM</p>
+      <h2 id="newhere-title" class="h1" set:html={title} data-reveal />
+      <p class="lede newhere__body" data-reveal>{body}</p>
+      <div class="btn-row" data-reveal>
+        <a href="/visit" class="btn btn--light">Plan your visit <Icon name="arrow" size={18} class="btn__arrow" /></a>
+        <a href="/contact" class="btn btn--outline-light">Ask a question</a>
+      </div>
+      <p class="newhere__address small" data-reveal>
+        <Icon name="pin" size={16} /> {church.address.street}, {church.address.city}
+      </p>
+    </div>
+    <Photo src={image} alt={imageAlt} ratio="4 / 5" sizes="(min-width: 56em) 40vw, 100vw" class="newhere__photo" />
+  </div>
+</section>
+
+<style>
+  .newhere { padding-block: var(--section); overflow: hidden; }
+  .newhere__grid { display: grid; gap: var(--space-xl); align-items: center; }
+  @media (min-width: 56em) { .newhere__grid { grid-template-columns: 1.25fr 1fr; } }
+  .newhere__eyebrow { color: var(--gold); margin-bottom: 1.25rem; }
+  .newhere__body { margin-block: 1.75rem 2.25rem; color: #d7e8e5; }
+  .newhere__address { display: flex; align-items: center; gap: 0.4rem; margin-top: 1.5rem; color: #d7e8e5; }
+  .newhere :global(.newhere__photo) { max-height: 42rem; }
+</style>

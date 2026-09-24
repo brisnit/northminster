@@ -1,0 +1,110 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import FeatureSplit from '@/components/FeatureSplit.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import Photo from '@/components/Photo.astro';
+import Icon from '@/components/Icon.astro';
+import { church } from '@/config/site';
+
+import heroImg from '@/assets/photos/garden-boxes.jpg';
+import gatheringImg from '@/assets/photos/garden-gathering.jpg';
+import signImg from '@/assets/photos/garden-welcome-sign.jpg';
+import bedsImg from '@/assets/photos/garden-beds.jpg';
+import speakerImg from '@/assets/photos/garden-speaker.jpg';
+import winterImg from '@/assets/photos/garden-winter.jpg';
+import lunchImg from '@/assets/photos/camp-garden-lunch.jpg';
+
+const facts = [
+  { big: '5′ × 10′', label: 'Your own raised box, with its own irrigation system and timer.' },
+  { big: '$5', label: 'A month. That’s the only cost. Renewals every four months.' },
+  { big: '24/7', label: 'Garden whenever you like — no restrictions on time of day.' },
+  { big: '~40', label: 'Neighbors sharing tools, seeds, compost and advice.' },
+];
+---
+
+<Base title="Community Garden" description="Northminster’s community garden in Clairemont: 5×10 raised boxes with irrigation, shared tools and compost, about 40 gardeners, and $5 a month." header="overlay">
+  <PageHero
+    eyebrow="NPC Community Garden"
+    title="Dig in <em>with your neighbors.</em>"
+    lede="About 40 gardeners share this plot of Clairemont soil — along with the harvest, the work and a lot of good conversation."
+    image={heroImg}
+    imageAlt="Rows of raised garden beds with young plants at the Northminster community garden, the sanctuary roof beyond"
+  >
+    <a href={`mailto:${church.email}?subject=Community%20garden%20waiting%20list`} class="btn btn--light">Join the waiting list</a>
+    <a href="#visit-garden" class="btn btn--outline-light">Visit on a Saturday</a>
+  </PageHero>
+
+  <section class="section" aria-labelledby="more-title">
+    <div class="container">
+      <FeatureSplit eyebrow="More than vegetables" title="What grows here <em>is community.</em>" image={gatheringImg} imageAlt="Gardeners gathered at picnic tables under the arbor for a talk" ratio="4 / 3">
+        <p class="lede" id="more-title">The garden has grown into much more than a place to cultivate plants.</p>
+        <p>Members share responsibilities, make decisions together through a committee-style approach, and make sure the garden runs smoothly. That spirit of cooperation has built real friendships — and everyone enjoys both fresh harvests and the satisfaction of working together.</p>
+        <p>Recently we made grape jelly in the church kitchen from the garden’s own vines (a class taught by church member JoAn Johnson — everyone went home with two jars), hosted guest speaker Chuck McClung, and enjoyed an abundant harvest of passion fruit and dragon fruit.</p>
+      </FeatureSplit>
+    </div>
+  </section>
+
+  <section class="section--tight section--teal" aria-label="Garden facts">
+    <div class="container">
+      <dl class="gfacts">
+        {facts.map((f, i) => (
+          <div data-reveal style={`--reveal-delay:${i}`}><dt>{f.label}</dt><dd>{f.big}</dd></div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" aria-label="Garden photos">
+    <div class="container">
+      <div class="gallery">
+        <Photo src={signImg} alt="A “Welcome to our Garden” sign hanging in a grapevine wreath on the gate" ratio="3 / 4" sizes="(min-width: 56em) 30vw, 50vw" class="g1" />
+        <Photo src={bedsImg} alt="Raised beds full of flowers and young vegetables" ratio="3 / 2" sizes="(min-width: 56em) 45vw, 100vw" class="g2" />
+        <Photo src={speakerImg} alt="A guest speaker talks with gardeners under the arbor" ratio="3 / 4" position="50% 40%" sizes="(min-width: 56em) 25vw, 50vw" class="g3" />
+        <Photo src={lunchImg} alt="Summer campers eating lunch beside the garden beds" ratio="3 / 2" sizes="(min-width: 56em) 45vw, 100vw" class="g4" />
+        <Photo src={winterImg} alt="The garden in winter, with the sanctuary’s roofline in the background" ratio="3 / 4" sizes="(min-width: 56em) 30vw, 50vw" class="g5" />
+      </div>
+      <p class="gallery__note muted small">Our garden’s grapevines become handmade wreaths each December — unique decorations and gifts.</p>
+    </div>
+  </section>
+
+  <section class="section section--sand" id="visit-garden" aria-labelledby="join-title">
+    <div class="container join">
+      <SectionHeader eyebrow="Come garden with us" title="Saturdays at <em>9 AM.</em>" id="join-title"
+        intro="Our gardeners meet weekly on Saturday mornings to share joys, challenges… and produce. You’re welcome to stop by and meet us." />
+      <div class="join__card" data-reveal>
+        <h3 class="h4">Want a box?</h3>
+        <p class="muted">We keep a waiting list. Once you have a box, you can garden with us indefinitely. Members also share photos, questions and news on an online group page.</p>
+        <div class="btn-row">
+          <a href={`mailto:${church.email}?subject=Community%20garden%20waiting%20list`} class="btn btn--teal"><Icon name="mail" size={18} /> Email the office</a>
+          <a href={church.phoneHref} class="btn btn--outline"><Icon name="phone" size={18} /> {church.phone}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .gfacts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem 1.5rem; }
+  @media (min-width: 56em) { .gfacts { grid-template-columns: repeat(4, 1fr); } }
+  .gfacts div { display: flex; flex-direction: column-reverse; gap: 0.5rem; }
+  .gfacts dd { font-family: var(--display); font-size: var(--step-4); line-height: 1; letter-spacing: -0.03em; color: var(--gold); }
+  .gfacts dt { color: #d7e8e5; font-size: var(--step--1); max-width: 24ch; }
+
+  .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .gallery :global(.g2), .gallery :global(.g4) { grid-column: 1 / -1; }
+  @media (min-width: 56em) {
+    .gallery { grid-template-columns: repeat(12, 1fr); gap: 1.5rem; align-items: center; }
+    .gallery :global(.g1) { grid-column: 1 / span 4; }
+    .gallery :global(.g2) { grid-column: 5 / span 8; }
+    .gallery :global(.g3) { grid-column: 1 / span 3; }
+    .gallery :global(.g4) { grid-column: 4 / span 6; }
+    .gallery :global(.g5) { grid-column: 10 / span 3; }
+  }
+  .gallery__note { margin-top: 1.25rem; }
+
+  .join { display: grid; gap: 2rem; align-items: end; }
+  @media (min-width: 60em) { .join { grid-template-columns: 1.2fr 1fr; gap: 5rem; } }
+  .join :global(.section-header) { margin-bottom: 0; }
+  .join__card { display: grid; gap: 1rem; padding: clamp(1.5rem, 3vw, 2.5rem); background: var(--paper); border-radius: var(--radius); }
+</style>

@@ -1,0 +1,36 @@
+---
+import type { Ministry } from '@/content/ministries';
+import Photo from './Photo.astro';
+import PhotoPlaceholder from './PhotoPlaceholder.astro';
+import Icon from './Icon.astro';
+
+interface Props { ministry: Ministry; index?: number; sizes?: string }
+const { ministry, index = 0, sizes = '(min-width: 64em) 30vw, (min-width: 40em) 45vw, 90vw' } = Astro.props;
+---
+
+<article class="mincard" data-reveal style={`--reveal-delay:${index % 3}`}>
+  <a href={ministry.href} class="mincard__link">
+    {ministry.image ? (
+      <Photo src={ministry.image} alt={ministry.imageAlt ?? ''} ratio="4 / 5" sizes={sizes} zoom reveal={false} />
+    ) : (
+      <PhotoPlaceholder shot={ministry.photoNeeded ?? ministry.name} ratio="4 / 5" />
+    )}
+    <div class="mincard__body">
+      <p class="eyebrow mincard__who">{ministry.who}</p>
+      <h3 class="mincard__name">{ministry.name} <Icon name="arrow" size={22} class="mincard__arrow" /></h3>
+      <p class="mincard__tagline">{ministry.tagline}</p>
+    </div>
+  </a>
+</article>
+
+<style>
+  .mincard__link { display: grid; gap: 1.25rem; text-decoration: none; }
+  .mincard__who { color: var(--ember); font-size: 0.75rem; margin-bottom: 0.5rem; }
+  .mincard__name {
+    font-family: var(--display); font-size: var(--step-3); font-weight: 380; letter-spacing: -0.025em; line-height: 1;
+  }
+  .mincard__name :global(.mincard__arrow) { display: inline; vertical-align: middle; margin-left: 0.25rem; transition: transform 0.35s var(--ease); }
+  @media (max-width: 40em) { .mincard :global(.media) { aspect-ratio: 3 / 2 !important; } }
+  .mincard__link:hover .mincard__name :global(.mincard__arrow) { transform: translateX(6px); }
+  .mincard__tagline { margin-top: 0.6rem; color: var(--muted); max-width: 30ch; }
+</style>

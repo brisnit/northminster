@@ -1,0 +1,50 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import StaffCard from '@/components/StaffCard.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import NeedsInfo from '@/components/NeedsInfo.astro';
+import { staff, supportStaff } from '@/content/staff';
+import { church } from '@/config/site';
+---
+
+<Base title="Leadership & Staff" description="Meet Pastor Jay Shirley, worship pastor Britt, preschool director Sharon Halle and the team that serves Northminster.">
+  <PageHero
+    eyebrow="Leadership & staff"
+    title="Real people, <em>glad you’re here.</em>"
+    lede="Our pastor leads Sunday worship along with our staff, deacons and session — but most of what happens at Northminster is done by volunteers who simply love this place."
+  />
+
+  <section class="section--tight" aria-label="Pastoral staff">
+    <div class="container staff-list">
+      {staff.map((person) => <StaffCard person={person} />)}
+    </div>
+  </section>
+
+  <section class="section section--sand" aria-labelledby="team-title">
+    <div class="container">
+      <SectionHeader eyebrow="Behind the scenes" title="The team that <em>keeps it all going.</em>" id="team-title" align="split" />
+      <ul role="list" class="team">
+        {supportStaff.map((p) => (
+          <li data-reveal>
+            <p class="team__name">{p.name}</p>
+            <p class="muted">{p.role}</p>
+          </li>
+        ))}
+      </ul>
+      <NeedsInfo note="Britt’s last name, Alison’s full name and title, and photos of support staff are not on the current site" />
+      <p class="team__contact">Want to reach someone? Call <a href={church.phoneHref}>{church.phone}</a> or email <a href={`mailto:${church.email}`}>{church.email}</a>.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .staff-list { display: grid; gap: var(--section); padding-block: var(--space-xl) var(--section); }
+  .team { display: grid; gap: 0; border-top: 1px solid var(--line); margin-bottom: 1.5rem; }
+  @media (min-width: 40em) { .team { grid-template-columns: repeat(2, 1fr); column-gap: 2rem; } }
+  @media (min-width: 64em) { .team { grid-template-columns: repeat(3, 1fr); } }
+  .team li { padding-block: 1.25rem; border-bottom: 1px solid var(--line); }
+  .team__name { font-family: var(--display); font-size: var(--step-2); line-height: 1.15; }
+  .team__contact { margin-top: 2rem; }
+  .team__contact a { color: var(--teal); font-weight: 600; }
+</style>

@@ -1,0 +1,114 @@
+---
+import '@/styles/global.css';
+import { Font } from 'astro:assets';
+import { church, fullAddress } from '@/config/site';
+import SiteHeader from '@/components/SiteHeader.astro';
+import SiteFooter from '@/components/SiteFooter.astro';
+import MobileActionBar from '@/components/MobileActionBar.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  header?: 'overlay' | 'solid';
+  ogImage?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = 'A small, close-knit neighborhood church in Clairemont, San Diego. Join us Sundays at 10 AM — questions, kids and all.',
+  header = 'solid',
+  ogImage,
+  noindex = false,
+} = Astro.props;
+
+const fullTitle = title ? `${title} · ${church.name}` : `${church.name} · Clairemont, San Diego`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = ogImage ? new URL(ogImage, Astro.site).href : undefined;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Church',
+  name: church.name,
+  url: Astro.site?.href,
+  telephone: church.phone,
+  email: church.email,
+  foundingDate: String(church.founded),
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: church.address.street,
+    addressLocality: church.address.city,
+    addressRegion: church.address.region,
+    postalCode: church.address.postalCode,
+    addressCountry: 'US',
+  },
+  geo: { '@type': 'GeoCoordinates', latitude: church.address.lat, longitude: church.address.lng },
+  hasMap: church.mapsUrl,
+  event: {
+    '@type': 'Event',
+    name: 'Sunday Worship',
+    eventSchedule: { '@type': 'Schedule', byDay: 'https://schema.org/Sunday', startTime: '10:00', endTime: '11:00', scheduleTimezone: 'America/Los_Angeles' },
+    location: { '@type': 'Place', name: church.name, address: fullAddress },
+  },
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#f6f1e8" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={church.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <Font cssVariable="--font-display" preload={[{ style: 'normal' }]} />
+    <Font cssVariable="--font-body" preload />
+
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader variant={header} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <SiteFooter />
+    <MobileActionBar />
+
+    <script>
+      // Reveal-on-scroll (CSS only animates when motion is allowed).
+      const els = document.querySelectorAll<HTMLElement>('[data-reveal]');
+      if ('IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+          (entries) => entries.forEach((e) => {
+            if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); }
+          }),
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+        );
+        els.forEach((el) => io.observe(el));
+      } else {
+        els.forEach((el) => el.classList.add('is-visible'));
+      }
+
+      // Hide dated items that have already ended (keeps a stale build honest).
+      const now = Date.now();
+      document.querySelectorAll<HTMLElement>('[data-ends]').forEach((el) => {
+        if (Date.parse(el.dataset.ends!) < now) el.hidden = true;
+      });
+    </script>
+  </body>
+</html>

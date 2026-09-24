@@ -1,0 +1,20 @@
+---
+/** Label/value facts for a ministry or event: When, Where, Who, Cost… */
+interface Props { items: { label: string; value: string }[]; class?: string }
+const { items, class: className } = Astro.props;
+---
+
+<dl class:list={['facts', className]}>
+  {items.map((i) => (
+    <div><dt>{i.label}</dt><dd set:html={i.value} /></div>
+  ))}
+</dl>
+
+<style>
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 1.25rem 2rem; padding-block: 1.5rem; border-block: 1px solid var(--line); margin-block: 1.5rem; }
+  :global(.section--night) .facts, :global(.section--teal) .facts { border-color: var(--line-night); }
+  dt { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  :global(.section--night) dt, :global(.section--teal) dt { color: var(--on-night-muted); }
+  dd { margin-top: 0.25rem; font-weight: 600; }
+  dd :global(a) { color: inherit; }
+</style>

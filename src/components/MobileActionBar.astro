@@ -1,0 +1,61 @@
+---
+/**
+ * Phone-only quick actions — the three things a first-time visitor on a
+ * phone most often needs. Slides in after the first screen of scrolling.
+ */
+import { church } from '@/config/site';
+import Icon from './Icon.astro';
+---
+
+<nav class="action-bar" aria-label="Quick actions" data-action-bar>
+  <a href="/visit" class="action-bar__main">
+    <span class="action-bar__when">Sundays · 10 AM</span>
+    <span class="action-bar__cta">Plan your visit <Icon name="arrow" size={16} /></span>
+  </a>
+  <a href={church.directionsUrl} target="_blank" rel="noopener" class="action-bar__icon">
+    <Icon name="pin" size={22} /><span>Directions</span><span class="visually-hidden">(opens Google Maps)</span>
+  </a>
+  <a href={church.phoneHref} class="action-bar__icon"><Icon name="phone" size={22} /><span>Call</span></a>
+</nav>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-action-bar]');
+  if (bar) {
+    bar.classList.add('is-hidden');
+    const footer = document.querySelector('footer');
+    let footerVisible = false;
+    const update = () => bar.classList.toggle('is-hidden', window.scrollY < window.innerHeight * 0.6 || footerVisible);
+    if (footer && 'IntersectionObserver' in window) {
+      new IntersectionObserver(([e]) => { footerVisible = e.isIntersecting; update(); }).observe(footer);
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+</script>
+
+<style>
+  .action-bar {
+    position: fixed; z-index: 40;
+    left: 0.75rem; right: 0.75rem; bottom: max(0.75rem, env(safe-area-inset-bottom));
+    display: flex; gap: 0.35rem; padding: 0.35rem;
+    background: var(--night); color: var(--on-night);
+    border-radius: 999px;
+    box-shadow: 0 12px 32px -8px rgb(0 0 0 / 0.45);
+    transition: transform 0.4s var(--ease), opacity 0.3s;
+  }
+  .action-bar.is-hidden { transform: translateY(140%); opacity: 0; pointer-events: none; }
+  .action-bar a { text-decoration: none; border-radius: 999px; }
+  .action-bar__main {
+    flex: 1; display: grid; align-content: center; min-height: 3.25rem; padding: 0.3rem 1.1rem;
+    background: var(--paper); color: var(--ink); line-height: 1.2;
+  }
+  .action-bar__when { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+  .action-bar__cta { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; font-size: 0.9375rem; }
+  .action-bar__icon {
+    display: grid; justify-items: center; align-content: center; gap: 0.1rem;
+    min-width: 4.25rem; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em;
+  }
+  .action-bar__icon:focus-visible, .action-bar__main:focus-visible { outline-color: var(--gold); }
+  @media (min-width: 48em) { .action-bar { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .action-bar { transition: none; } }
+</style>

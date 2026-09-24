@@ -1,0 +1,83 @@
+---
+import type { ChurchEvent } from '@/content/events';
+import { formatMonthShort, formatDayNum, formatWeekday, formatTimeRange, toInstant } from '@/lib/dates';
+import Photo from './Photo.astro';
+import Icon from './Icon.astro';
+
+/**
+ * Event card. Photo-led when a real photo exists; otherwise an intentional
+ * typographic treatment (never a stock image).
+ * `data-ends` lets the browser hide it automatically once it's over.
+ */
+interface Props {
+  event: ChurchEvent;
+  variant?: 'feature' | 'default';
+  headingLevel?: 'h2' | 'h3';
+  sizes?: string;
+}
+const { event, variant = 'default', headingLevel = 'h3', sizes = '(min-width: 64em) 30vw, (min-width: 40em) 50vw, 85vw' } = Astro.props;
+const H = headingLevel;
+const when = event.timeLabel ?? formatTimeRange(event.start, event.end);
+---
+
+<article class:list={['ecard', `ecard--${variant}`]} data-ends={toInstant(event.end)} data-reveal>
+  <a href={`/events#${event.slug}`} class="ecard__link">
+    <div class="ecard__media">
+      {event.image ? (
+        <Photo src={event.image} alt={event.imageAlt ?? ''} sizes={sizes} ratio={variant === 'feature' ? '4 / 3' : '4 / 3'} zoom reveal={false} />
+      ) : (
+        <div class="ecard__typo" aria-hidden="true">
+          <span class="ecard__typo-day">{formatWeekday(event.start)}</span>
+          <span class="ecard__typo-title">{event.title}</span>
+        </div>
+      )}
+      <p class="ecard__date">
+        <span class="ecard__month">{formatMonthShort(event.start)}</span>
+        <span class="ecard__day">{formatDayNum(event.start)}</span>
+      </p>
+    </div>
+    <div class="ecard__body">
+      <p class="eyebrow ecard__when">{formatWeekday(event.start)} · {when}</p>
+      <H class="ecard__title">{event.title}</H>
+      <p class="ecard__summary">{event.summary}</p>
+      <p class="ecard__where small"><Icon name="pin" size={16} /> {event.location}{event.cost && <> · {event.cost}</>}</p>
+    </div>
+  </a>
+</article>
+
+<style>
+  .ecard__link { display: grid; gap: 1.25rem; height: 100%; text-decoration: none; }
+  .ecard__media { position: relative; }
+  .ecard__date {
+    position: absolute; top: 0.9rem; left: 0.9rem;
+    display: grid; justify-items: center;
+    min-width: 3.6rem; padding: 0.5rem 0.6rem 0.55rem;
+    background: var(--paper); color: var(--ink);
+    border-radius: 3px; line-height: 1;
+  }
+  .ecard__month { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); }
+  .ecard__day { font-family: var(--display); font-size: 1.9rem; letter-spacing: -0.02em; margin-top: 0.15rem; }
+
+  .ecard__typo {
+    aspect-ratio: 4 / 3; border-radius: var(--radius);
+    display: grid; align-content: end; gap: 0.5rem; padding: 1.5rem;
+    background:
+      radial-gradient(90% 70% at 100% 0%, rgb(233 180 92 / 0.28), transparent 60%),
+      var(--teal-deep);
+    color: var(--on-night);
+    overflow: hidden;
+  }
+  .ecard__typo-day { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--teal-soft); }
+  .ecard__typo-title { font-family: var(--display); font-size: clamp(2rem, 4vw, 3rem); line-height: 0.95; letter-spacing: -0.03em; font-weight: 360; max-width: 9ch; }
+
+  .ecard__when { color: var(--ember); margin-bottom: 0.6rem; font-size: 0.75rem; }
+  .ecard__title { font-family: var(--display); font-size: var(--step-2); font-weight: 400; letter-spacing: -0.015em; line-height: 1.1; }
+  .ecard__link:hover .ecard__title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  .ecard__summary { margin-block: 0.6rem 0.9rem; color: var(--muted); }
+  .ecard__where { display: flex; align-items: center; gap: 0.4rem; font-weight: 600; }
+
+  .ecard--feature .ecard__title { font-size: var(--step-3); }
+  @media (min-width: 64em) {
+    .ecard--feature .ecard__summary { font-size: var(--step-1); line-height: 1.45; }
+  }
+</style>

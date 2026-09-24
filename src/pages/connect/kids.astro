@@ -1,0 +1,119 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import FeatureSplit from '@/components/FeatureSplit.astro';
+import FactList from '@/components/FactList.astro';
+import NewHereCTA from '@/components/NewHereCTA.astro';
+import NeedsInfo from '@/components/NeedsInfo.astro';
+import Photo from '@/components/Photo.astro';
+import Icon from '@/components/Icon.astro';
+import { church } from '@/config/site';
+
+import heroImg from '@/assets/photos/camp-crafts-2.jpg';
+import sundaySchoolImg from '@/assets/photos/camp-crafts.jpg';
+import familyNightImg from '@/assets/photos/kitchen-volunteers.jpg';
+import pnoImg from '@/assets/photos/fall-pumpkins.jpg';
+import camp1 from '@/assets/photos/camp-garden-lunch.jpg';
+import camp2 from '@/assets/photos/camp-sanctuary.jpg';
+import camp3 from '@/assets/photos/camp-hall.jpg';
+import ctaImg from '@/assets/photos/camp-lawn.jpg';
+
+const campSignupUrl = 'https://docs.google.com/forms/d/e/1FAIpQLScwfNeD1n0VYTd1SxbynqG-iEqpr8Q88Q09x6QDAdToklY0mw/viewform';
+---
+
+<Base title="Kids & Families" description="Sunday School for ages 3 through 6th grade, Wednesday Family Nights, Parents Night Out and Artsy Adventure Camp at Northminster in Clairemont." header="overlay">
+  <PageHero
+    eyebrow="Kids & families"
+    title="Your kids are part of <em>this church, too.</em>"
+    lede="Bible stories, crafts, games and grown-ups who know their names. We want kids to leave asking when they can come back."
+    image={heroImg}
+    imageAlt="Children in matching blue shirts working on crafts with volunteers at summer camp"
+  />
+
+  <section class="section" aria-label="Kids ministries">
+    <div class="container">
+      <FeatureSplit id="sunday-school" eyebrow="Every Sunday" title="Sunday School" image={sundaySchoolImg} imageAlt="Kids gathered around a table making crafts together">
+        <p class="lede">Bible-based teaching that’s age-appropriate, creative and fun — led by men, women and youth who feel called to serve kids.</p>
+        <FactList items={[
+          { label: 'Ages', value: '3 years – 6th grade' },
+          { label: 'When', value: 'During the 10 AM service' },
+          { label: 'Where', value: 'The Youth room' },
+        ]} />
+        <p>Bring your child into the sanctuary with you. After the announcements, kids come up for a prayer together and walk with their teacher to the Youth room for a story, a craft and other interactive activities. Pick them up there after the service.</p>
+        <p>On communion Sundays (the first Sunday of the month), kids come back to share communion with the whole church. Infants and toddlers are welcome to stay with you in the pews or in the library-area seating.</p>
+        <NeedsInfo note="Northminster to confirm: check-in process and volunteer background-check policy" />
+      </FeatureSplit>
+
+      <FeatureSplit id="family-nights" eyebrow="Wednesdays, 5:30 – 7:30 PM" title="Wednesday Family Nights" image={familyNightImg} imageAlt="Volunteers laughing together while preparing dinner in the church kitchen" reverse>
+        <p class="lede">It starts with dinner: a home-cooked meal at 5:30, then everyone splits up for an hour of Bible study at their own level.</p>
+        <FactList items={[
+          { label: 'Adults', value: 'Bible study with the pastor' },
+          { label: 'Up to 4th grade', value: 'Younger kids group' },
+          { label: '5th grade & up', value: 'Older kids group' },
+        ]} />
+        <p>Every Wednesday during the school year — we take a break in summer. All ages welcome.</p>
+        <Fragment slot="actions">
+          <a href={`mailto:${church.youthEmail}`} class="btn btn--teal"><Icon name="mail" size={18} /> Questions? Email Alison</a>
+        </Fragment>
+      </FeatureSplit>
+
+      <FeatureSplit id="parents-night-out" eyebrow="One Friday a month" title="Parents Night Out" image={pnoImg} imageAlt="A volunteer helps a young child decorate pumpkins on the church lawn">
+        <p class="lede">Go to dinner. Take a nap. We’ve got the kids.</p>
+        <FactList items={[
+          { label: 'Time', value: '6:00 – 8:30 PM' },
+          { label: 'Ages', value: 'Potty-trained – 5th grade' },
+          { label: 'Cost', value: '$10 per child<br />$15 per family' },
+          { label: 'Where', value: 'Congdon Hall' },
+        ]} />
+        <p>Free play, pizza and ice cream, an age-appropriate movie, music, crafts and games — run by volunteers and leaders from our church. Space is limited; registration opens on the 1st of each month.</p>
+        <Fragment slot="actions">
+          <a href={church.phoneHref} class="btn btn--teal"><Icon name="phone" size={18} /> Call to register</a>
+          <a href="/events" class="btn btn--outline">See the next date</a>
+        </Fragment>
+      </FeatureSplit>
+    </div>
+  </section>
+
+  <section class="section section--sand" id="camp" aria-labelledby="camp-title">
+    <div class="container">
+      <div class="camp__head">
+        <p class="eyebrow camp__eyebrow" data-reveal>Every July · Kindergarten – 5th grade</p>
+        <h2 id="camp-title" class="h1" data-reveal>Artsy Adventure <em>Camp.</em></h2>
+        <p class="lede" data-reveal>A week-long art and Bible camp for the whole community. Volunteers lead outdoor games and hands-on art projects while kids learn about Christ. The 2026 theme was “Safari.”</p>
+        <div class="btn-row" data-reveal>
+          <a href="/contact" class="btn btn--teal">Ask about next summer</a>
+          <a href={campSignupUrl} class="btn btn--outline" target="_blank" rel="noopener">Camp sign-up form<span class="visually-hidden"> (opens in a new tab)</span></a>
+        </div>
+        <NeedsInfo note="Confirm the sign-up form link is current for next year’s camp" />
+      </div>
+      <div class="camp__photos">
+        <Photo src={camp1} alt="Campers eating lunch together beside the garden beds" ratio="4 / 3" sizes="(min-width: 56em) 40vw, 100vw" />
+        <Photo src={camp2} alt="Campers moving and dancing in the sanctuary aisle" ratio="4 / 3" sizes="(min-width: 56em) 30vw, 100vw" />
+        <Photo src={camp3} alt="Campers and volunteers at tables in the fellowship hall" ratio="4 / 3" sizes="(min-width: 56em) 30vw, 100vw" />
+      </div>
+    </div>
+  </section>
+
+  <section class="section--tight" aria-labelledby="preschool-title">
+    <div class="container preschool">
+      <div>
+        <p class="eyebrow preschool__eyebrow">Right here on campus</p>
+        <h2 id="preschool-title" class="h3">Northminster Preschool</h2>
+      </div>
+      <p class="muted">Directed by Sharon Halle, who has taught at the preschool since 2009. “Thank you for entrusting us with your child’s first years of school.”</p>
+      <a href={church.links.preschool} class="btn btn--outline" target="_blank" rel="noopener">Preschool website <Icon name="external" size={16} /><span class="visually-hidden"> (opens in a new tab)</span></a>
+    </div>
+  </section>
+
+  <NewHereCTA image={ctaImg} imageAlt="A camp volunteer sits on the lawn talking with two girls" title="Bring the whole crew <em>this Sunday.</em>" body="Kids start in worship with you, then head to Sunday School around 10:15. Walk them over the first time — our teachers would love to meet you." />
+</Base>
+
+<style>
+  .camp__head { display: grid; gap: 1.5rem; justify-items: start; max-width: 48rem; margin-bottom: var(--space-xl); }
+  .camp__eyebrow { color: var(--ember); }
+  .camp__photos { display: grid; gap: 1rem; }
+  @media (min-width: 56em) { .camp__photos { grid-template-columns: 1.3fr 1fr 1fr; gap: 1.5rem; } }
+  .preschool { display: grid; gap: 1.25rem; align-items: center; }
+  @media (min-width: 64em) { .preschool { grid-template-columns: 1fr 1.3fr auto; gap: 3rem; } }
+  .preschool__eyebrow { color: var(--ember); margin-bottom: 0.5rem; }
+</style>

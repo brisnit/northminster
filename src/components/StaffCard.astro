@@ -1,0 +1,40 @@
+---
+import type { StaffMember } from '@/content/staff';
+import Photo from './Photo.astro';
+
+interface Props { person: StaffMember; expanded?: boolean; headingLevel?: 'h2' | 'h3' }
+const { person, expanded = false, headingLevel = 'h2' } = Astro.props;
+const H = headingLevel;
+const id = person.name.toLowerCase().replace(/[^a-z]+/g, '-');
+---
+
+<article class="staff" id={id} data-reveal>
+  <Photo src={person.photo} alt={person.photoAlt} ratio="4 / 5" position="50% 25%" sizes="(min-width: 56em) 28rem, 90vw" widths={[400, 640, 900, 1200]} />
+  <div class="staff__body">
+    <p class="eyebrow staff__role">{person.role}</p>
+    <H class="h3">{person.name}</H>
+    <p class="lede staff__intro">{person.intro}</p>
+    {expanded ? (
+      <div class="prose staff__bio">{person.bio.map((p) => <p>{p}</p>)}</div>
+    ) : (
+      <details class="staff__more">
+        <summary>Read more about {person.name.replace('Rev. ', '')}</summary>
+        <div class="prose staff__bio">{person.bio.map((p) => <p>{p}</p>)}</div>
+      </details>
+    )}
+  </div>
+</article>
+
+<style>
+  .staff { display: grid; gap: 2rem; align-items: start; }
+  @media (min-width: 56em) { .staff { grid-template-columns: minmax(16rem, 28rem) 1fr; gap: 4rem; } }
+  .staff__role { color: var(--ember); margin-bottom: 0.75rem; }
+  .staff__intro { margin-block: 1.25rem; }
+  .staff__more summary {
+    display: inline-flex; min-height: 2.75rem; align-items: center;
+    font-weight: 650; font-size: 0.9375rem; letter-spacing: 0.06em; text-transform: uppercase;
+    cursor: pointer; text-decoration: underline; text-underline-offset: 0.3em;
+  }
+  .staff__more[open] summary { margin-bottom: 1rem; }
+  .staff__bio { color: var(--muted); }
+</style>

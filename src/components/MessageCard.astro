@@ -1,0 +1,36 @@
+---
+import type { Sermon } from '@/content/sermons';
+import { formatDate } from '@/lib/dates';
+import MessageArt from './MessageArt.astro';
+
+interface Props { sermon: Sermon; headingLevel?: 'h2' | 'h3' }
+const { sermon, headingLevel = 'h3' } = Astro.props;
+const H = headingLevel;
+---
+
+<article class="mcard" data-reveal>
+  <a href={`/messages/${sermon.slug}`} class="mcard__link">
+    <div class="mcard__art"><MessageArt sermon={sermon} /></div>
+    <div class="mcard__body">
+      <p class="mcard__meta small">
+        <time datetime={sermon.date}>{formatDate(sermon.date)}</time>
+        {sermon.scripture && <><span aria-hidden="true"> · </span>{sermon.scripture}</>}
+      </p>
+      <H class="mcard__title">{sermon.title}</H>
+      <p class="mcard__speaker small">{sermon.speaker}</p>
+    </div>
+  </a>
+</article>
+
+<style>
+  .mcard__link { display: grid; gap: 1rem; text-decoration: none; }
+  .mcard__art { transition: transform 0.6s var(--ease); }
+  .mcard__link:hover .mcard__art { transform: translateY(-4px); }
+  .mcard__title {
+    font-family: var(--display); font-size: var(--step-2); font-weight: 400; line-height: 1.1; letter-spacing: -0.015em;
+    margin-block: 0.3rem;
+  }
+  .mcard__link:hover .mcard__title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  .mcard__meta, .mcard__speaker { color: var(--muted); }
+  :global(.section--night) .mcard__meta, :global(.section--night) .mcard__speaker { color: var(--on-night-muted); }
+</style>

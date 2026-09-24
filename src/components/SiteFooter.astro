@@ -1,0 +1,118 @@
+---
+import { church, footerNav } from '@/config/site';
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+
+const socials = (
+  [
+    ['instagram', 'Instagram', church.social.instagram],
+    ['facebook', 'Facebook', church.social.facebook],
+    ['youtube', 'YouTube', church.social.youtube],
+  ] as const
+).filter(([, , url]) => url);
+const year = new Date().getFullYear();
+---
+
+<footer class="footer on-night">
+  <div class="container">
+    <div class="footer__lead">
+      <p class="footer__statement h2">Love God. Love our neighbors. <em>Save you a seat.</em></p>
+      <div class="btn-row">
+        <a href="/visit" class="btn btn--light">Plan your visit</a>
+        <a href="/give" class="btn btn--outline-light">Give</a>
+      </div>
+    </div>
+
+    <div class="footer__grid">
+      <div class="footer__col footer__brand">
+        <a href="/" aria-label="Northminster Presbyterian Church — home"><Logo tone="light" /></a>
+        <p class="muted small">
+          A neighborhood church in {church.neighborhood} since {church.founded}. A member congregation of the
+          <a href={church.denominationUrl} target="_blank" rel="noopener">{church.denomination}</a> and the {church.presbytery}.
+        </p>
+        {socials.length > 0 && (
+          <ul role="list" class="footer__social">
+            {socials.map(([icon, label, url]) => (
+              <li><a href={url} target="_blank" rel="noopener" aria-label={`Northminster on ${label}`}><Icon name={icon} size={22} /></a></li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div class="footer__col">
+        <h2 class="eyebrow footer__heading">Sunday worship</h2>
+        <p class="footer__time">10:00 AM</p>
+        <p class="muted small">In person and live on Zoom.<br />Coffee & donuts before and after.</p>
+      </div>
+
+      <div class="footer__col">
+        <h2 class="eyebrow footer__heading">Find us</h2>
+        <address class="small">
+          <a href={church.directionsUrl} target="_blank" rel="noopener" class="footer__contact">
+            <Icon name="pin" size={18} />
+            <span>{church.address.street}<br />{church.address.city}, {church.address.region} {church.address.postalCode}<span class="visually-hidden"> — directions, opens in a new tab</span></span>
+          </a>
+          <a href={church.phoneHref} class="footer__contact"><Icon name="phone" size={18} /><span>{church.phone}</span></a>
+          <a href={`mailto:${church.email}`} class="footer__contact"><Icon name="mail" size={18} /><span>{church.email}</span></a>
+        </address>
+      </div>
+
+      {footerNav.map((group) => (
+        <nav class="footer__col" aria-label={group.heading}>
+          <h2 class="eyebrow footer__heading">{group.heading}</h2>
+          <ul role="list" class="footer__links">
+            {group.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+          </ul>
+        </nav>
+      ))}
+    </div>
+
+    <div class="footer__base small muted">
+      <p>© {year} {church.name}</p>
+      <p>
+        <a href={church.links.preschool} target="_blank" rel="noopener">Northminster Preschool<span class="visually-hidden"> (opens in a new tab)</span></a>
+        <span aria-hidden="true"> · </span>
+        <a href="/contact">Contact</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer { padding-block: var(--section) 2rem; border-top: 1px solid var(--line-night); }
+  .footer a { text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+  .footer__lead {
+    display: grid; gap: 2rem; align-items: end;
+    padding-bottom: var(--space-xl);
+    border-bottom: 1px solid var(--line-night);
+  }
+  .footer__statement { max-width: 16ch; }
+  @media (min-width: 56em) { .footer__lead { grid-template-columns: 1fr auto; } }
+
+  .footer__grid {
+    display: grid; gap: 2.5rem 2rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-block: var(--space-xl);
+  }
+  .footer__brand { grid-column: 1 / -1; display: grid; gap: 1.25rem; align-content: start; max-width: 24rem; }
+  .footer__brand p a { text-decoration: underline; }
+  @media (min-width: 40em) { .footer__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (min-width: 72em) {
+    .footer__grid { grid-template-columns: 1.6fr repeat(5, minmax(0, 1fr)); }
+    .footer__brand { grid-column: auto; }
+  }
+  .footer__heading { color: var(--on-night-muted); margin-bottom: 1rem; font-size: 0.75rem; }
+  .footer__time { font-family: var(--display); font-size: 2.5rem; line-height: 1; color: var(--gold); margin-bottom: 0.5rem; }
+  .footer__contact { display: flex; gap: 0.6rem; align-items: flex-start; padding-block: 0.3rem; overflow-wrap: anywhere; }
+  .footer__contact .icon { margin-top: 0.2rem; color: var(--gold); }
+  .footer__links li + li { margin-top: 0.15rem; }
+  .footer__links a { display: inline-block; padding-block: 0.3rem; }
+  .footer__social { display: flex; gap: 0.5rem; }
+  .footer__social a { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border: 1px solid var(--line-night); border-radius: 50%; }
+  .footer__social a:hover { background: var(--paper); color: var(--ink); }
+  .footer__base {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 2rem;
+    padding-top: 1.5rem; border-top: 1px solid var(--line-night);
+  }
+</style>

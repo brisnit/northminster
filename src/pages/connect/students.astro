@@ -1,0 +1,68 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import FeatureSplit from '@/components/FeatureSplit.astro';
+import FactList from '@/components/FactList.astro';
+import NewHereCTA from '@/components/NewHereCTA.astro';
+import Icon from '@/components/Icon.astro';
+import { church } from '@/config/site';
+import ctaImg from '@/assets/photos/camp-hall.jpg';
+---
+
+<Base title="Students" description="Sunday night youth group for middle and high schoolers at Northminster: dinner, Bible study and real conversation. Plus mentoring through Urban Youth Collaborative.">
+  <PageHero
+    eyebrow="Students · Grades 6 – 12"
+    title="Dinner, real questions, <em>and your people.</em>"
+    lede="Middle and high school can be a lot. Sunday nights at Northminster are a place to eat, talk honestly about faith, and be with friends who have your back."
+  />
+
+  <section class="section--tight" aria-label="Student ministries">
+    <div class="container">
+      <FeatureSplit id="youth-group" eyebrow="Sunday nights" title="Youth Group" photoNeeded="Students laughing around the dinner table on a Sunday night" headingLevel="h2">
+        <p class="lede">Dinner at 5:30. Group from 6:00 to 7:30. Bible studies and character-building activities that connect with real life right now.</p>
+        <FactList items={[
+          { label: 'When', value: 'Sundays, 5:30 – 7:30 PM' },
+          { label: 'Who', value: 'Middle & high school' },
+          { label: 'Dinner', value: 'Included' },
+        ]} />
+        <p>Youth group meets on select Sunday nights — check the events page or email Alison for this month’s dates. RSVPs help us plan dinner.</p>
+        <Fragment slot="actions">
+          <a href={`mailto:${church.youthEmail}?subject=Youth%20group`} class="btn btn--teal"><Icon name="mail" size={18} /> RSVP to Alison</a>
+          <a href="/events" class="btn btn--outline">Upcoming dates</a>
+        </Fragment>
+      </FeatureSplit>
+
+      <FeatureSplit id="wednesdays" eyebrow="Wednesdays, 5:30 PM" title="Family Night, <em>older kids group</em>" photoNeeded="Older kids and a leader talking in the youth room on a Wednesday" reverse>
+        <p>On Wednesday Family Nights, everyone eats together at 5:30. Then younger kids head to their group, adults study with the pastor, and older kids have a group of their own.</p>
+        <Fragment slot="actions">
+          <a href="/connect/groups#family-nights" class="btn btn--outline">About Family Nights</a>
+        </Fragment>
+      </FeatureSplit>
+    </div>
+  </section>
+
+  <section class="section section--night" id="uyc" aria-labelledby="uyc-title">
+    <div class="container uyc">
+      <div>
+        <p class="eyebrow uyc__eyebrow" data-reveal>Beyond our walls</p>
+        <h2 id="uyc-title" class="h2" data-reveal>Urban Youth <em>Collaborative.</em></h2>
+      </div>
+      <div class="prose" data-reveal>
+        <p class="lede">UYC is a coalition of 56 church partners supporting student-led faith clubs and assemblies at more than 100 middle and high school campuses across San Diego County and Mexico.</p>
+        <p>Northminster works with Pastor Nate Landis to organize volunteers who mentor students at <strong>Clairemont High</strong> and the <strong>Creative, Performing & Media Arts School (CPMA)</strong>. Each week, students serve physical and spiritual food to thousands of their friends.</p>
+        <div class="btn-row">
+          <a href={`mailto:${church.email}?subject=UYC%20mentoring`} class="btn btn--light">Become a mentor</a>
+          <a href={church.links.uyc} class="btn btn--outline-light" target="_blank" rel="noopener">uyc.org <Icon name="external" size={16} /><span class="visually-hidden"> (opens in a new tab)</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <NewHereCTA image={ctaImg} imageAlt="Kids and volunteers gathered around tables in the fellowship hall" title="Bring a friend <em>on Sunday night.</em>" body="New faces are always welcome at youth group. Just let Alison know you’re coming so there’s enough dinner." />
+</Base>
+
+<style>
+  .uyc { display: grid; gap: 2rem; }
+  @media (min-width: 56em) { .uyc { grid-template-columns: 1fr 1.2fr; gap: 5rem; } }
+  .uyc__eyebrow { color: var(--gold); margin-bottom: 1rem; }
+</style>

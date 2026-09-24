@@ -1,0 +1,46 @@
+---
+/**
+ * Section heading block: eyebrow, oversized title, optional intro and action.
+ * `title` accepts simple HTML so a word can be set in italic (<em>).
+ */
+interface Props {
+  eyebrow?: string;
+  title: string;
+  intro?: string;
+  level?: 'h1' | 'h2' | 'h3';
+  size?: 'display' | 'h1' | 'h2' | 'h3';
+  align?: 'start' | 'split' | 'center';
+  id?: string;
+  class?: string;
+}
+const { eyebrow, title, intro, level = 'h2', size = 'h2', align = 'start', id, class: className } = Astro.props;
+const Tag = level;
+const hasAction = Astro.slots.has('default');
+---
+
+<div class:list={['section-header', `section-header--${align}`, className]}>
+  <div class="section-header__text" data-reveal>
+    {eyebrow && <p class="eyebrow section-header__eyebrow">{eyebrow}</p>}
+    <Tag class={size} id={id} set:html={title} />
+  </div>
+  {(intro || hasAction) && (
+    <div class="section-header__aside" data-reveal style="--reveal-delay:1">
+      {intro && <p class="lede muted">{intro}</p>}
+      {hasAction && <div class="section-header__action"><slot /></div>}
+    </div>
+  )}
+</div>
+
+<style>
+  .section-header { display: grid; gap: 1.5rem 3rem; margin-bottom: var(--space-xl); }
+  .section-header__eyebrow { margin-bottom: 1.1rem; color: var(--accent-eyebrow, var(--ember)); }
+  :global(.section--night) .section-header__eyebrow,
+  :global(.section--teal) .section-header__eyebrow { color: var(--gold); }
+  .section-header__aside { display: grid; gap: 1.5rem; align-content: end; justify-items: start; }
+  .section-header--center { text-align: center; justify-items: center; }
+  .section-header--center .section-header__aside { justify-items: center; }
+  .section-header--center .lede { margin-inline: auto; }
+  @media (min-width: 60em) {
+    .section-header--split { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); align-items: end; }
+  }
+</style>

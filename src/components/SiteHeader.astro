@@ -1,0 +1,312 @@
+---
+import { church, primaryNav, fullAddress } from '@/config/site';
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+
+interface Props {
+  /** "overlay" sits transparently on top of a full-bleed hero photo. */
+  variant?: 'overlay' | 'solid';
+}
+const { variant = 'solid' } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isCurrent = (href: string) => {
+  const clean = href.split('#')[0];
+  return clean === '/' ? path === '/' : path === clean || path.startsWith(`${clean}/`);
+};
+---
+
+<header class:list={['site-header', `site-header--${variant}`]} data-header>
+  <div class="utility">
+    <div class="container utility__inner">
+      <p class="utility__time"><Icon name="clock" size={16} /> Sundays at 10 AM · In person & on Zoom</p>
+      <a class="utility__place" href={church.directionsUrl} target="_blank" rel="noopener">
+        <Icon name="pin" size={16} />
+        <span class="utility__address">{fullAddress}</span>
+        <span class="utility__directions">Get directions</span>
+        <span class="visually-hidden">(opens Google Maps in a new tab)</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="container bar__inner">
+      <a href="/" class="bar__logo" aria-label="Northminster Presbyterian Church — home">
+        <Logo tone={variant === 'overlay' ? 'light' : 'ink'} />
+      </a>
+
+      <nav class="nav" aria-label="Main">
+        <ul role="list" class="nav__list">
+          {primaryNav.map((item, i) => (
+            <li class="nav__item" data-dropdown={item.children ? '' : undefined}>
+              {item.children ? (
+                <>
+                  <button
+                    type="button"
+                    class:list={['nav__link', isCurrent(item.href) && 'is-current']}
+                    aria-expanded="false"
+                    aria-controls={`nav-panel-${i}`}
+                  >
+                    {item.label}
+                    <Icon name="chevron" size={14} class="nav__chev" />
+                  </button>
+                  <div class="nav__panel" id={`nav-panel-${i}`}>
+                    <ul role="list">
+                      {item.children.map((child) => (
+                        <li>
+                          <a href={child.href} aria-current={path === child.href ? 'page' : undefined}>
+                            <span class="nav__child-label">{child.label}</span>
+                            {child.description && <span class="nav__child-desc">{child.description}</span>}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              ) : (
+                <a
+                  href={item.href}
+                  class:list={['nav__link', isCurrent(item.href) && 'is-current']}
+                  aria-current={isCurrent(item.href) ? 'page' : undefined}
+                >
+                  {item.label}
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div class="bar__actions">
+        <a href="/visit" class="btn btn--sm bar__cta">Plan your visit</a>
+        <button type="button" class="menu-toggle" aria-haspopup="dialog" aria-controls="mobile-menu" data-menu-open>
+          <Icon name="menu" size={24} />
+          <span class="menu-toggle__label">Menu</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<dialog id="mobile-menu" class="mobile-menu on-night" aria-label="Site menu" data-menu>
+  <div class="mobile-menu__top container">
+    <a href="/" aria-label="Northminster Presbyterian Church — home"><Logo tone="light" compact /></a>
+    <button type="button" class="menu-toggle menu-toggle--close" data-menu-close>
+      <Icon name="close" size={24} />
+      <span class="menu-toggle__label">Close</span>
+    </button>
+  </div>
+
+  <nav class="mobile-menu__nav container" aria-label="Main">
+    <ul role="list">
+      {primaryNav.map((item) => (
+        <li>
+          <a href={item.href} class="mobile-menu__link" aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
+          {item.children && (
+            <ul role="list" class="mobile-menu__sub">
+              {item.children.map((child) => <li><a href={child.href}>{child.label}</a></li>)}
+            </ul>
+          )}
+        </li>
+      ))}
+      <li><a href="/contact" class="mobile-menu__link">Contact</a></li>
+    </ul>
+  </nav>
+
+  <div class="mobile-menu__info container">
+    <div>
+      <p class="eyebrow">Join us Sunday</p>
+      <p class="mobile-menu__big">10 AM</p>
+      <p class="muted">{church.address.street}<br />{church.address.city}, {church.address.region} {church.address.postalCode}</p>
+    </div>
+    <div class="btn-row">
+      <a href="/visit" class="btn btn--light">Plan your visit</a>
+      <a href={church.directionsUrl} class="btn btn--outline-light" target="_blank" rel="noopener"><Icon name="pin" size={18} /> Directions</a>
+      <a href={church.phoneHref} class="btn btn--outline-light"><Icon name="phone" size={18} /> Call</a>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+
+  // Solid background once the page scrolls (overlay variant starts transparent).
+  if (header) {
+    const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  // Desktop dropdowns: disclosure buttons, Escape and outside-click close.
+  const dropdowns = [...document.querySelectorAll<HTMLElement>('[data-dropdown]')];
+  const closeAll = (except?: HTMLElement) =>
+    dropdowns.forEach((d) => {
+      if (d !== except) d.querySelector('button')?.setAttribute('aria-expanded', 'false');
+    });
+
+  dropdowns.forEach((dd) => {
+    const btn = dd.querySelector('button')!;
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      closeAll(dd);
+      btn.setAttribute('aria-expanded', String(!open));
+    });
+    dd.addEventListener('focusout', (e) => {
+      if (!dd.contains(e.relatedTarget as Node)) btn.setAttribute('aria-expanded', 'false');
+    });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const open = dropdowns.find((d) => d.querySelector('button')?.getAttribute('aria-expanded') === 'true');
+    if (open) {
+      closeAll();
+      open.querySelector('button')?.focus();
+    }
+  });
+  document.addEventListener('click', (e) => {
+    if (!dropdowns.some((d) => d.contains(e.target as Node))) closeAll();
+  });
+
+  // Mobile menu: native <dialog> gives focus trapping and Escape for free.
+  const menu = document.querySelector<HTMLDialogElement>('[data-menu]');
+  const opener = document.querySelector<HTMLButtonElement>('[data-menu-open]');
+  opener?.addEventListener('click', () => {
+    menu?.showModal();
+    document.documentElement.classList.add('menu-open');
+  });
+  menu?.querySelector('[data-menu-close]')?.addEventListener('click', () => menu.close());
+  menu?.addEventListener('close', () => {
+    document.documentElement.classList.remove('menu-open');
+    opener?.focus();
+  });
+  menu?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => menu.close()));
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    color: var(--ink);
+    transition: background-color 0.35s var(--ease), color 0.35s var(--ease), box-shadow 0.35s var(--ease);
+  }
+  .site-header--solid { background: var(--paper); box-shadow: 0 1px 0 var(--line); }
+  .site-header--overlay {
+    position: fixed;
+    inset: 0 0 auto 0;
+    color: var(--on-night);
+    background: linear-gradient(to bottom, rgb(20 16 12 / 0.55), transparent);
+  }
+  .site-header--overlay.is-scrolled {
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 1px 0 var(--line);
+  }
+  .site-header--overlay.is-scrolled :global(.logo) { color: var(--ink); }
+  .site-header--overlay.is-scrolled :global(.logo__mark) { color: var(--teal); }
+
+  /* Utility bar */
+  .utility {
+    font-size: 0.8125rem;
+    border-bottom: 1px solid currentColor;
+    border-color: color-mix(in srgb, currentColor 16%, transparent);
+    transition: margin 0.35s var(--ease), opacity 0.25s;
+  }
+  .site-header.is-scrolled .utility { margin-top: -2.5rem; opacity: 0; pointer-events: none; }
+  .utility__inner { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 2.5rem; }
+  .utility p, .utility a { display: inline-flex; align-items: center; gap: 0.45rem; }
+  .utility__place { text-decoration: none; }
+  .utility__directions { font-weight: 650; text-decoration: underline; text-underline-offset: 0.2em; }
+  .utility__address { display: none; }
+  @media (min-width: 48em) {
+    .utility__address { display: inline; }
+    .utility__address::after { content: '·'; margin-left: 0.45rem; }
+  }
+  @media (max-width: 30em) {
+    .utility__time { font-size: 0.75rem; }
+    .utility__place { display: none !important; }
+    .utility__inner { justify-content: center; }
+  }
+
+  /* Main bar */
+  .bar__inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; min-height: var(--header-h); }
+  .bar__logo { text-decoration: none; }
+  .bar__actions { display: flex; align-items: center; gap: 0.5rem; }
+  .site-header--overlay:not(.is-scrolled) .bar__cta { --btn-bg: var(--paper); --btn-fg: var(--ink); }
+  .site-header--overlay:not(.is-scrolled) .bar__cta:hover { --btn-bg: var(--gold); }
+
+  .nav { display: none; }
+  .nav__list { display: flex; gap: 0.25rem; }
+  .nav__item { position: relative; }
+  .nav__link {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.9375rem; font-weight: 600; letter-spacing: 0.02em;
+    text-decoration: none;
+    border-radius: 999px;
+    transition: background-color 0.2s;
+  }
+  .nav__link:hover, .nav__link[aria-expanded='true'] { background: color-mix(in srgb, currentColor 10%, transparent); }
+  .nav__link.is-current { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 0.45em; }
+  .nav__chev { transition: transform 0.25s var(--ease); }
+  .nav__link[aria-expanded='true'] .nav__chev { transform: rotate(180deg); }
+
+  .nav__panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: -0.5rem;
+    width: 21rem;
+    padding: 0.6rem;
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 6px;
+    box-shadow: 0 24px 48px -12px rgb(26 23 20 / 0.28), 0 0 0 1px var(--line);
+    opacity: 0; visibility: hidden; transform: translateY(-6px);
+    transition: opacity 0.2s, transform 0.25s var(--ease), visibility 0.2s;
+  }
+  .nav__link[aria-expanded='true'] + .nav__panel { opacity: 1; visibility: visible; transform: none; }
+  .nav__panel a { display: grid; gap: 0.1rem; padding: 0.75rem 0.9rem; border-radius: 4px; text-decoration: none; }
+  .nav__panel a:hover, .nav__panel a[aria-current='page'] { background: var(--sand); }
+  .nav__child-label { font-weight: 650; }
+  .nav__child-desc { font-size: 0.875rem; color: var(--muted); }
+
+  .menu-toggle {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    min-height: 2.75rem; padding: 0 0.6rem 0 0.75rem;
+    font-size: 0.8125rem; font-weight: 650; letter-spacing: 0.08em; text-transform: uppercase;
+    border-radius: 999px;
+  }
+
+  @media (max-width: 26em) {
+    .bar__cta { display: none; }
+  }
+  @media (min-width: 64em) {
+    .nav { display: block; }
+    .menu-toggle:not(.menu-toggle--close) { display: none; }
+  }
+
+  /* Mobile menu */
+  .mobile-menu {
+    width: 100%; max-width: none; height: 100dvh; max-height: none;
+    margin: 0; padding: 0 0 2rem; border: 0;
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  .mobile-menu::backdrop { background: var(--night); }
+  .mobile-menu[open] { animation: menu-in 0.4s var(--ease); }
+  @keyframes menu-in { from { opacity: 0; transform: translateY(-12px); } }
+  @media (prefers-reduced-motion: reduce) { .mobile-menu[open] { animation: none; } }
+  .mobile-menu__top { display: flex; justify-content: space-between; align-items: center; min-height: 5rem; }
+  .mobile-menu__nav { padding-block: 1rem 2rem; }
+  .mobile-menu__nav > ul > li { border-bottom: 1px solid var(--line-night); padding-block: 0.6rem; }
+  .mobile-menu__link {
+    display: block; padding-block: 0.25rem;
+    font-family: var(--display); font-size: clamp(2rem, 9vw, 2.75rem); font-weight: 380; letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  .mobile-menu__link[aria-current='page'] { color: var(--gold); }
+  .mobile-menu__sub { display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; padding-bottom: 0.4rem; }
+  .mobile-menu__sub a { display: inline-block; padding-block: 0.35rem; color: var(--on-night-muted); font-size: 0.9375rem; text-decoration: none; }
+  .mobile-menu__sub a:hover { color: var(--on-night); }
+  .mobile-menu__info { display: grid; gap: 1.5rem; padding-top: 0.5rem; }
+  .mobile-menu__big { font-family: var(--display); font-size: 3.5rem; line-height: 1; margin-block: 0.25rem 0.5rem; color: var(--gold); }
+  :global(html.menu-open) { overflow: hidden; }
+</style>

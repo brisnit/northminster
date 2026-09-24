@@ -1,0 +1,103 @@
+---
+import Base from '@/layouts/Base.astro';
+import VideoPlayer from '@/components/VideoPlayer.astro';
+import MessageCard from '@/components/MessageCard.astro';
+import Icon from '@/components/Icon.astro';
+import { sermons, type Sermon } from '@/content/sermons';
+import { formatDate } from '@/lib/dates';
+
+export function getStaticPaths() {
+  return sermons.map((sermon, i) => ({
+    params: { slug: sermon.slug },
+    props: { sermon, newer: sermons[i - 1], older: sermons[i + 1] },
+  }));
+}
+
+interface Props { sermon: Sermon; newer?: Sermon; older?: Sermon }
+const { sermon, newer, older } = Astro.props;
+const more = sermons.filter((s) => s.slug !== sermon.slug).slice(0, 3);
+const description = `${sermon.title}${sermon.scripture ? ` (${sermon.scripture})` : ''} — a message from ${sermon.speaker} at Northminster Presbyterian Church, ${formatDate(sermon.date)}.`;
+---
+
+<Base title={sermon.title} description={description}>
+  <section class="section section--night detail" aria-labelledby="page-title">
+    <div class="container">
+      <a href="/messages" class="link-arrow detail__back"><Icon name="arrow" size={16} class="flip" /> All messages</a>
+      <div class="detail__grid">
+        <div class="detail__player"><VideoPlayer sermon={sermon} /></div>
+        <div class="detail__info">
+          <p class="eyebrow detail__series">{sermon.series}</p>
+          <h1 id="page-title" class="h2">{sermon.title}</h1>
+          <dl class="detail__meta">
+            <div><dt>Speaker</dt><dd>{sermon.speaker}</dd></div>
+            <div><dt>Date</dt><dd><time datetime={sermon.date}>{formatDate(sermon.date)}</time></dd></div>
+            {sermon.scripture && <div><dt>Scripture</dt><dd>{sermon.scripture}</dd></div>}
+            {sermon.kind === 'homily' && <div><dt>Format</dt><dd>Homily</dd></div>}
+          </dl>
+          {sermon.youtubeId && (
+            <a href={`https://www.youtube.com/watch?v=${sermon.youtubeId}`} class="link-arrow" target="_blank" rel="noopener">
+              Watch on YouTube <Icon name="arrow-up-right" size={16} /><span class="visually-hidden"> (opens in a new tab)</span>
+            </a>
+          )}
+        </div>
+      </div>
+
+      {sermon.audioUrl && (
+        <div class="listen" id="listen">
+          <h2 class="eyebrow listen__title"><Icon name="headphones" size={18} /> Listen to the audio</h2>
+          <audio controls preload="none" src={sermon.audioUrl} class="listen__audio">
+            <a href={sermon.audioUrl}>Download the audio</a>
+          </audio>
+          <a href={sermon.audioUrl} class="link-arrow" download>Download MP3 <Icon name="download" size={16} /></a>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <nav class="section--tight pager" aria-label="More messages">
+    <div class="container pager__inner">
+      {older ? <a href={`/messages/${older.slug}`} class="pager__link"><span class="eyebrow">Previous</span><span class="pager__title">{older.title}</span></a> : <span />}
+      {newer && <a href={`/messages/${newer.slug}`} class="pager__link pager__link--next"><span class="eyebrow">Next</span><span class="pager__title">{newer.title}</span></a>}
+    </div>
+  </nav>
+
+  <section class="section section--sand" aria-labelledby="more-title">
+    <div class="container">
+      <h2 id="more-title" class="h3 more__title">Keep watching</h2>
+      <div class="more">{more.map((s) => <MessageCard sermon={s} />)}</div>
+      <div class="more__cta">
+        <p class="lede">Want to hear the next one in person?</p>
+        <a href="/visit" class="btn btn--teal">Join us Sunday at 10 <Icon name="arrow" size={18} class="btn__arrow" /></a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .detail { padding-top: clamp(2rem, 5vw, 4rem); }
+  .detail__back { margin-bottom: 2rem; }
+  .detail__back :global(.flip) { transform: scaleX(-1); }
+  .detail__grid { display: grid; gap: var(--space-l); align-items: end; }
+  @media (min-width: 64em) { .detail__grid { grid-template-columns: 1.6fr 1fr; gap: var(--space-xl); } }
+  .detail__info { display: grid; gap: 1.25rem; justify-items: start; }
+  .detail__series { color: var(--gold); }
+  .detail__meta { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.5rem; width: 100%; padding-block: 1.25rem; border-block: 1px solid var(--line-night); }
+  .detail__meta dt { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--on-night-muted); }
+  .listen { display: grid; gap: 1rem; justify-items: start; margin-top: var(--space-xl); padding-top: var(--space-l); border-top: 1px solid var(--line-night); }
+  .listen__title { display: flex; align-items: center; gap: 0.5rem; color: var(--on-night-muted); }
+  .listen__audio { width: 100%; max-width: 40rem; }
+
+  .pager { border-bottom: 1px solid var(--line); }
+  .pager__inner { display: flex; justify-content: space-between; gap: 1.5rem; }
+  .pager__link { display: grid; gap: 0.4rem; text-decoration: none; max-width: 22rem; }
+  .pager__link .eyebrow { color: var(--ember); }
+  .pager__link--next { text-align: right; }
+  .pager__title { font-family: var(--display); font-size: var(--step-2); line-height: 1.1; }
+  .pager__link:hover .pager__title { text-decoration: underline; text-decoration-thickness: 1px; }
+
+  .more__title { margin-bottom: var(--space-l); }
+  .more { display: grid; gap: 3rem 1.5rem; }
+  @media (min-width: 40em) { .more { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 64em) { .more { grid-template-columns: repeat(3, 1fr); } }
+  .more__cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; margin-top: var(--space-xl); }
+</style>

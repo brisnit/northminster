@@ -1,0 +1,25 @@
+---
+import Base from '@/layouts/Base.astro';
+import { church } from '@/config/site';
+---
+
+<Base title="Page not found" noindex>
+  <section class="section">
+    <div class="container container--narrow nf">
+      <p class="eyebrow nf__eyebrow">404</p>
+      <h1 class="h1">This page wandered off. <em>You’re still welcome here.</em></h1>
+      <p class="lede muted">The page you’re looking for may have moved when we redesigned our website.</p>
+      <div class="btn-row">
+        <a href="/" class="btn">Go home</a>
+        <a href="/visit" class="btn btn--outline">Plan your visit</a>
+        <a href="/messages" class="btn btn--outline">Messages</a>
+      </div>
+      <p class="small muted">Or call us at <a href={church.phoneHref}>{church.phone}</a>.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf { display: grid; gap: 1.5rem; justify-items: start; min-height: 50vh; align-content: center; }
+  .nf__eyebrow { color: var(--ember); }
+</style>

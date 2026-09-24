@@ -1,0 +1,28 @@
+---
+import { SHOW_CONTENT_FLAGS } from '@/config/flags';
+/**
+ * Visible review marker for content the church still needs to confirm.
+ * Hidden entirely when SHOW_CONTENT_FLAGS is false.
+ */
+interface Props { note?: string; inline?: boolean }
+const { note = 'Suggested copy — Northminster to confirm', inline = false } = Astro.props;
+---
+
+{SHOW_CONTENT_FLAGS && (
+  <span class:list={['needs-info', inline && 'needs-info--inline']} data-content-flag>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>
+    {note}
+  </span>
+)}
+
+<style>
+  .needs-info {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    margin-top: 0.5rem; padding: 0.2rem 0.55rem;
+    border: 1px dashed #8a5a00; border-radius: 3px;
+    background: #fff4d6; color: #5c3b00;
+    font-family: var(--body); font-size: 0.75rem; font-weight: 650; letter-spacing: 0.02em; line-height: 1.3;
+    text-transform: none;
+  }
+  .needs-info--inline { margin: 0 0 0 0.4rem; vertical-align: middle; }
+</style>

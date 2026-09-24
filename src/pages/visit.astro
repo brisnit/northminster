@@ -1,0 +1,199 @@
+---
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import SectionHeader from '@/components/SectionHeader.astro';
+import FeatureSplit from '@/components/FeatureSplit.astro';
+import Faq from '@/components/Faq.astro';
+import Icon from '@/components/Icon.astro';
+import NeedsInfo from '@/components/NeedsInfo.astro';
+import { church, fullAddress } from '@/config/site';
+import { sundayFlow, visitFaqs, kidsOnSunday } from '@/content/visit';
+
+import heroImg from '@/assets/photos/sanctuary-congregation.jpg';
+import kidsImg from '@/assets/photos/camp-sanctuary.jpg';
+import worshipImg from '@/assets/photos/sanctuary-scripture-reading.jpg';
+import campusSign from '@/assets/photos/campus-sign.jpg';
+
+const appleMaps = `https://maps.apple.com/?daddr=${encodeURIComponent(fullAddress)}`;
+---
+
+<Base
+  title="Plan Your Visit"
+  description="Everything you need for your first Sunday at Northminster: service time, directions, what to expect, and what happens with your kids."
+  header="overlay"
+>
+  <PageHero
+    eyebrow="Plan your visit"
+    title="You don’t have to know everything <em>before you come.</em>"
+    lede="Here’s what a Sunday at Northminster looks like, answered in plain English — so you can walk in feeling like you’ve been here before."
+    image={heroImg}
+    imageAlt="The Northminster congregation seated in the sanctuary beneath tall panels of stained glass"
+    position="50% 45%"
+  >
+    <a href={church.directionsUrl} class="btn btn--light" target="_blank" rel="noopener"><Icon name="pin" size={18} /> Get directions<span class="visually-hidden"> (opens Google Maps)</span></a>
+    <a href="#what-to-expect" class="btn btn--outline-light">What to expect</a>
+  </PageHero>
+
+  <!-- ESSENTIALS -->
+  <section class="essentials" aria-label="Service essentials">
+    <div class="container">
+      <dl class="essentials__grid">
+        <div data-reveal><dt><Icon name="calendar" size={20} /> When</dt><dd>Sundays<br />10:00 AM</dd></div>
+        <div data-reveal style="--reveal-delay:1"><dt><Icon name="clock" size={20} /> How long</dt><dd>About<br />an hour</dd></div>
+        <div data-reveal style="--reveal-delay:2"><dt><Icon name="users" size={20} /> Kids</dt><dd>Sunday School<br />ages 3–6th grade</dd></div>
+        <div data-reveal style="--reveal-delay:3"><dt><Icon name="coffee" size={20} /> Before &amp; after</dt><dd>Coffee &amp;<br />donuts</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- LOCATION -->
+  <section class="section section--sand" aria-labelledby="where-title" id="directions">
+    <div class="container">
+      <FeatureSplit
+        eyebrow="Where we are"
+        title="On Clairemont Mesa Blvd, <em>next to O’Reilly.</em>"
+        image={campusSign}
+        imageAlt="Northminster’s street sign and stone planter on Clairemont Mesa Blvd"
+        ratio="4 / 3"
+        position="30% 50%"
+        reverse
+      >
+        <p class="lede" id="where-title">{church.address.street}<br />{church.address.city}, {church.address.region} {church.address.postalCode}</p>
+        <p>We’re in the Clairemont community of San Diego, between Genesee Ave. and Clairemont Dr., right next to the O’Reilly Auto Parts store. Look for the tented, mid-century sanctuary roof.</p>
+        <h3>Parking &amp; accessibility</h3>
+        <p>Questions about parking, accessible entrances or seating? Call the office at <a href={church.phoneHref}>{church.phone}</a> and we’ll help you plan.</p>
+        <NeedsInfo note="Northminster to add: where to park, accessible spaces and which entrance to use" />
+        <Fragment slot="actions">
+          <a href={church.directionsUrl} class="btn btn--teal" target="_blank" rel="noopener">Google Maps<span class="visually-hidden"> (opens in a new tab)</span></a>
+          <a href={appleMaps} class="btn btn--outline" target="_blank" rel="noopener">Apple Maps<span class="visually-hidden"> (opens in a new tab)</span></a>
+        </Fragment>
+      </FeatureSplit>
+    </div>
+  </section>
+
+  <!-- WHAT TO EXPECT -->
+  <section class="section" id="what-to-expect" aria-labelledby="expect-title">
+    <div class="container">
+      <SectionHeader
+        eyebrow="What to expect"
+        title="An hour, <em>start to finish.</em>"
+        intro="One service, about 60 minutes. Here’s roughly how it goes — times are approximate."
+        align="split"
+        id="expect-title"
+      />
+      <ol role="list" class="flow">
+        {sundayFlow.map((step, i) => (
+          <li class="flow__step" data-reveal style={`--reveal-delay:${i % 3}`}>
+            <span class="flow__time">{step.time}</span>
+            <h3 class="flow__title">{step.title}</h3>
+            <p class="muted">{step.body}</p>
+          </li>
+        ))}
+      </ol>
+      <p class="flow__note" data-reveal>
+        <strong>First Sunday of the month:</strong> we share communion right after the message, and the kids rejoin us for it.
+        <strong>Second Sunday:</strong> stay after for the Second Sunday Café — a meal, fellowship, and a bounce house for kids.
+      </p>
+    </div>
+  </section>
+
+  <!-- WORSHIP -->
+  <section class="section section--night" aria-labelledby="worship-title">
+    <div class="container">
+      <FeatureSplit
+        eyebrow="What worship is like"
+        title="Contemporary songs. <em>Timeless faith.</em>"
+        image={worshipImg}
+        imageAlt="A young girl reads scripture at the lectern while the congregation listens"
+        ratio="4 / 3"
+      >
+        <p id="worship-title" class="lede">Our worship blends contemporary music with traditional elements — led by our worship leader or band.</p>
+        <p>Some of us fondly remember robes and hymns sounding from the organ. We honor that, and we also know it isn’t the world we live in today. So we sing, pray, read Scripture together and hear a message that relates the teachings of Jesus to the world you actually live in.</p>
+        <p>You’ll see families, empty-nesters and retirees — about 50 to 60 people on a typical Sunday. Sit anywhere. Sing if you like. Nobody will put you on the spot.</p>
+        <Fragment slot="actions">
+          <a href="/messages" class="btn btn--light"><Icon name="play" size={16} /> Watch a recent service</a>
+        </Fragment>
+      </FeatureSplit>
+    </div>
+  </section>
+
+  <!-- KIDS -->
+  <section class="section" id="kids" aria-labelledby="kids-title">
+    <div class="container">
+      <FeatureSplit eyebrow="What about my kids?" title={kidsOnSunday.headline.replace('too.', '<em>too.</em>')} image={kidsImg} imageAlt="Kids in blue camp shirts moving and dancing in the sanctuary aisle" ratio="4 / 5" reverse>
+        <p class="lede" id="kids-title">We’re delighted to have you and your children with us. Starting worship together lets kids know they’re just as much a part of this community as the grown-ups.</p>
+        <ul role="list" class="kids">
+          {kidsOnSunday.points.map((p) => (
+            <li><h3>{p.title}</h3><p>{p.body}</p></li>
+          ))}
+        </ul>
+        <Fragment slot="actions">
+          <a href="/connect/kids" class="btn btn--outline">More for kids &amp; families <Icon name="arrow" size={18} class="btn__arrow" /></a>
+        </Fragment>
+      </FeatureSplit>
+    </div>
+  </section>
+
+  <!-- ONLINE -->
+  <section class="section--tight section--sand" aria-labelledby="online-title">
+    <div class="container online">
+      <div>
+        <p class="eyebrow online__eyebrow">Can’t make it in person?</p>
+        <h2 id="online-title" class="h3">Join us live on Zoom, Sundays at 10.</h2>
+      </div>
+      <p class="muted">For security we don’t post the Zoom link publicly. Email or call the church office and we’ll send it to you. Every service is also recorded and posted online.</p>
+      <div class="btn-row">
+        <a href={`mailto:${church.email}?subject=Zoom%20link%20for%20Sunday%20worship`} class="btn btn--teal"><Icon name="mail" size={18} /> Request the Zoom link</a>
+        <a href="/messages" class="btn btn--outline">Past services</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" aria-labelledby="faq-title">
+    <div class="container container--narrow">
+      <SectionHeader eyebrow="Good questions" title="Anything else <em>on your mind?</em>" id="faq-title" />
+      <Faq items={visitFaqs} />
+      <div class="faq-cta" data-reveal>
+        <p class="lede">Something we didn’t cover? We’d genuinely love to hear from you.</p>
+        <div class="btn-row">
+          <a href="/contact" class="btn">Ask us anything</a>
+          <a href={church.phoneHref} class="btn btn--outline"><Icon name="phone" size={18} /> {church.phone}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .essentials { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .essentials__grid { display: grid; grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 56em) { .essentials__grid { grid-template-columns: repeat(4, 1fr); } }
+  .essentials__grid > div { padding: clamp(1.5rem, 3vw, 2.5rem) 1rem clamp(1.5rem, 3vw, 2.5rem) 0; border-bottom: 1px solid var(--line); }
+  @media (min-width: 56em) {
+    .essentials__grid > div { border-bottom: 0; border-right: 1px solid var(--line); padding-left: 1.5rem; }
+    .essentials__grid > div:first-child { padding-left: 0; }
+    .essentials__grid > div:last-child { border-right: 0; }
+  }
+  .essentials dt { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); margin-bottom: 0.6rem; }
+  .essentials dd { font-family: var(--display); font-size: var(--step-2); line-height: 1.1; letter-spacing: -0.015em; }
+
+  .flow { display: grid; gap: 0; counter-reset: flow; border-top: 1.5px solid var(--ink); }
+  @media (min-width: 40em) { .flow { grid-template-columns: repeat(2, 1fr); column-gap: 2rem; } }
+  @media (min-width: 64em) { .flow { grid-template-columns: repeat(3, 1fr); column-gap: 3rem; } }
+  .flow__step { padding-block: 1.75rem; border-bottom: 1px solid var(--line); }
+  .flow__time { display: block; font-family: var(--display); font-size: var(--step-3); line-height: 1; color: var(--teal); letter-spacing: -0.02em; margin-bottom: 1rem; }
+  .flow__title { font-family: var(--display); font-size: var(--step-2); font-weight: 400; letter-spacing: -0.015em; margin-bottom: 0.4rem; }
+  .flow__note { margin-top: 2.5rem; max-width: 52rem; font-size: var(--step-1); line-height: 1.5; }
+
+  .kids { display: grid; gap: 1.25rem; margin-top: 1.5rem; }
+  .kids li { padding-left: 1.25rem; border-left: 2px solid var(--teal); }
+  .kids h3 { font-family: var(--body); font-size: var(--step-0); font-weight: 700; margin: 0; }
+  .kids p { margin-top: 0.2rem; color: var(--muted); }
+
+  .online { display: grid; gap: 1.5rem; align-items: center; }
+  @media (min-width: 64em) { .online { grid-template-columns: 1.1fr 1fr auto; gap: 3rem; } }
+  .online__eyebrow { color: var(--ember); margin-bottom: 0.6rem; }
+
+  .faq-cta { display: grid; gap: 1.25rem; margin-top: var(--space-xl); }
+</style>
