@@ -23,8 +23,9 @@ export default defineConfig({
     // sanitize-html (CommonJS) requires the ESM-only htmlparser2; Vercel's
     // function runtime can't require() ESM, so bundle them at build time.
     // (Its whole dependency tree is bundled so nothing is left unresolved.)
+    // Build only: the dev server loads it from node_modules as-is.
     ssr: {
-      noExternal: [
+      noExternal: !process.argv.includes('build') ? [] : [
         'sanitize-html', 'escape-string-regexp', 'htmlparser2', 'domelementtype', 'domhandler', 'domutils', 'dom-serializer',
         'entities', 'is-plain-object', 'launder', 'dayjs', 'parse-srcset', 'postcss', 'nanoid', 'picocolors', 'source-map-js',
       ],
