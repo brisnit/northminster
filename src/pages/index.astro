@@ -9,6 +9,7 @@ import MessageCard from '@/components/MessageCard.astro';
 import EventCard from '@/components/EventCard.astro';
 import MinistryCard from '@/components/MinistryCard.astro';
 import NewHereCTA from '@/components/NewHereCTA.astro';
+import PromoTout from '@/components/PromoTout.astro';
 
 import { church } from '@/config/site';
 import { sermons } from '@/content/sermons';
@@ -27,6 +28,7 @@ import campGardenLunch from '@/assets/photos/camp-garden-lunch.jpg';
 import memberSmiling from '@/assets/photos/member-smiling.jpg';
 import sanctuaryBuild from '@/assets/history/slide-19.jpg';
 import campusCanopy from '@/assets/photos/campus-canopy.jpg';
+import christmasImg from '@/assets/seasonal/christmas-narnia.png';
 
 const [latest, ...previous] = sermons;
 const featuredEvents = upcomingEvents().filter((e) => e.featured).slice(0, 4);
@@ -129,6 +131,18 @@ const featuredEvents = upcomingEvents().filter((e) => e.featured).slice(0, 4);
       </div>
     </div>
   </section>
+
+  <!-- CHRISTMAS TOUT (seasonal — remove or swap after the season) -->
+  <PromoTout
+    id="christmas"
+    eyebrow="Christmas at Northminster"
+    title="Celebrate Christmas <em>With Us.</em>"
+    body="Experience the joy, hope, and wonder of Christmas at Northminster. From meaningful worship to festive gatherings, there’s something for everyone this season. We would love to celebrate with you!"
+    cta={{ label: 'Explore Christmas at Northminster', href: 'https://sites.google.com/christmasatnorthminster.org/christmasatnorthminster' }}
+    image={christmasImg}
+    imageAlt="Illustration of a crowned lion standing on a snowy ridge among evergreens beneath a starry winter sky"
+    imagePosition="30% 50%"
+  />
 
   <!-- LATEST MESSAGE -->
   <section class="section section--night messages" aria-labelledby="message-title">

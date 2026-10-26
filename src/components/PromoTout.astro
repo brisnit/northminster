@@ -1,0 +1,118 @@
+---
+import type { ImageMetadata } from 'astro';
+import Photo from './Photo.astro';
+import Icon from './Icon.astro';
+
+/**
+ * Full-bleed 50/50 promotional tout: copy on a colored panel, image beside it.
+ * Reusable for seasonal campaigns (Christmas, Easter, camp…).
+ * Stacks on phones; true 50/50 from tablet up.
+ */
+interface Props {
+  eyebrow: string;
+  /** Accepts simple HTML so a phrase can be set in italic (<em>). */
+  title: string;
+  body: string;
+  cta: { label: string; href: string };
+  image: ImageMetadata;
+  imageAlt: string;
+  imagePosition?: string;
+  tone?: 'evergreen' | 'teal' | 'night';
+  /** Put the image on the left instead of the right. */
+  reverse?: boolean;
+  id?: string;
+}
+
+const {
+  eyebrow, title, body, cta, image, imageAlt,
+  imagePosition = 'center', tone = 'evergreen', reverse = false, id = 'promo',
+} = Astro.props;
+const isExternal = /^https?:\/\//.test(cta.href);
+---
+
+<section class:list={['tout', `tout--${tone}`, reverse && 'tout--reverse']} aria-labelledby={`${id}-title`}>
+  <div class="tout__content">
+    <div class="tout__inner">
+      <p class="eyebrow tout__eyebrow" data-reveal>{eyebrow}</p>
+      <h2 id={`${id}-title`} class="h1 tout__title" set:html={title} data-reveal style="--reveal-delay:1" />
+      <p class="lede tout__body" data-reveal style="--reveal-delay:2">{body}</p>
+      <div data-reveal style="--reveal-delay:3">
+        <a
+          href={cta.href}
+          class="btn btn--light tout__cta"
+          target={isExternal ? '_blank' : undefined}
+          rel={isExternal ? 'noopener' : undefined}
+        >
+          {cta.label}
+          <Icon name={isExternal ? 'arrow-up-right' : 'arrow'} size={18} class="btn__arrow" />
+          {isExternal && <span class="visually-hidden">(opens in a new tab)</span>}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="tout__media">
+    <Photo src={image} alt={imageAlt} ratio="4 / 3" position={imagePosition} sizes="(min-width: 48em) 50vw, 100vw" />
+  </div>
+</section>
+
+<style>
+  .tout {
+    --tout-bg: var(--evergreen);
+    --tout-glow: rgb(233 180 92 / 0.08);
+    display: grid;
+    background: var(--tout-bg);
+    color: var(--on-night);
+    overflow: hidden;
+  }
+  .tout--teal { --tout-bg: var(--teal); }
+  .tout--night { --tout-bg: var(--night); }
+
+  /* Copy panel — a soft candlelight glow keeps the flat color from feeling like an ad block. */
+  .tout__content {
+    position: relative;
+    display: grid;
+    align-items: center;
+    padding: var(--section) var(--gutter);
+    background: radial-gradient(110% 80% at 0% 100%, var(--tout-glow), transparent 60%);
+  }
+  .tout__inner { display: grid; gap: 1.5rem; justify-items: start; max-width: 36rem; }
+  .tout__eyebrow { color: var(--gold); }
+  .tout__title { max-width: 12ch; }
+  .tout__title :global(em) { color: var(--gold); }
+  .tout__body { color: var(--on-evergreen-muted); margin-bottom: 0.75rem; }
+  .tout--teal .tout__body { color: #d7e8e5; }
+  .tout--night .tout__body { color: var(--on-night-muted); }
+
+  /* Elegant hover: lift + gold fill (gold is inherited from .btn--light). */
+  .tout__cta { white-space: normal; text-align: left; box-shadow: 0 0 0 0 rgb(233 180 92 / 0); }
+  .tout__cta:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -12px rgb(0 0 0 / 0.55); }
+  .tout__cta:active { transform: translateY(0); }
+
+  /* Image panel */
+  .tout__media { position: relative; }
+  .tout__media :global(.media) { border-radius: 0; background: var(--evergreen-deep); }
+  .tout__media::after {
+    /* Feathered seam so the image settles into the green panel. */
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(to bottom, rgb(20 42 31 / 0.35), transparent 30%);
+  }
+
+  @media (min-width: 48em) {
+    .tout { grid-template-columns: 1fr 1fr; min-height: clamp(32rem, 62vw, 46rem); }
+    .tout--reverse .tout__media { order: -1; }
+    .tout__content { padding-block: var(--space-xl); padding-inline: var(--gutter) clamp(2rem, 5vw, 5rem); }
+    .tout--reverse .tout__content { padding-inline: clamp(2rem, 5vw, 5rem) var(--gutter); }
+    .tout__media :global(.media) { aspect-ratio: auto !important; height: 100%; }
+    .tout__media::after { background: linear-gradient(to right, rgb(20 42 31 / 0.55), transparent 22%); }
+    .tout--reverse .tout__media::after { background: linear-gradient(to left, rgb(20 42 31 / 0.55), transparent 22%); }
+  }
+  @media (min-width: 90em) {
+    .tout__content { padding-left: calc((100vw - var(--max)) / 2 + var(--gutter)); }
+    .tout--reverse .tout__content { padding-left: clamp(2rem, 5vw, 5rem); padding-right: calc((100vw - var(--max)) / 2 + var(--gutter)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tout__cta:hover { transform: none; }
+  }
+</style>
