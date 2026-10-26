@@ -206,3 +206,19 @@ export const auditLog = pgTable('audit_log', {
 export type EventRow = typeof event.$inferSelect;
 export type EventImageRow = typeof eventImage.$inferSelect;
 export type CategoryRow = typeof eventCategory.$inferSelect;
+
+/**
+ * Google Calendar entries still to be removed for events that were
+ * permanently deleted. The event row is gone, so this is the only durable
+ * record of the calendar id. Rows are deleted once Google confirms removal
+ * (an already-missing event counts as removed).
+ */
+export const calendarDeletion = pgTable('calendar_deletion', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  googleEventId: text('google_event_id').notNull().unique(),
+  attempts: integer('attempts').notNull().default(0),
+  nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }).notNull().defaultNow(),
+  lockedUntil: timestamp('locked_until', { withTimezone: true }),
+  lastError: text('last_error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index('calendar_deletion_due_idx').on(t.nextAttemptAt)]);

@@ -2,6 +2,7 @@
 import Admin from '@/layouts/Admin.astro';
 import EventForm from '@/components/admin/EventForm.astro';
 import SyncBadge from '@/components/admin/SyncBadge.astro';
+import PurgeDialog from '@/components/admin/PurgeDialog.astro';
 import { requireRole } from '@/server/guard';
 import { getEventWithImage, listCategories, rowToInput, type EventInput, type FieldErrors } from '@/server/events';
 import { handleEventPost } from '@/server/event-form-handler';
@@ -45,4 +46,20 @@ const image = values.imageId ? (values.imageId === found.image?.id ? found.image
   </div>
   {ev.syncError && ev.syncStatus === 'error' && <p class="flash flash--error">Google Calendar: {ev.syncError}</p>}
   <EventForm values={values} errors={errors} categories={categories} image={image} mode="edit" status={ev.status} focalX={focal.x} focalY={focal.y} />
+  {user.role === 'admin' && (
+    <section class="card danger-zone" aria-labelledby="danger-title">
+      <div>
+        <h2 id="danger-title">Danger zone</h2>
+        <p class="hint">Permanently delete this event from the website and Google Calendar. To hide it but keep a record, use Unpublish or Archive instead.</p>
+      </div>
+      <button type="button" class="btn btn--danger" data-purge-id={ev.id} data-purge-title={ev.title}>Delete permanently…</button>
+    </section>
+  )}
+  {user.role === 'admin' && <PurgeDialog />}
 </Admin>
+
+<style>
+  .danger-zone { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem 2rem; margin-top: 2rem; border: 1.5px solid #e9b4a5; background: #fff8f6; }
+  .danger-zone h2 { color: #7a2410; }
+  .danger-zone p { max-width: 40rem; margin-top: 0.3rem; }
+</style>

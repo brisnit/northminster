@@ -1,4 +1,5 @@
 ---
+import { tagPublicEvents } from '@/server/cache';
 import Base from '@/layouts/Base.astro';
 import EventDetail from '@/components/EventDetail.astro';
 import { eventBySlug } from '@/server/public-events';
@@ -8,7 +9,8 @@ export const prerender = false;
 
 const e = await eventBySlug(Astro.params.slug ?? '');
 if (!e) return new Response(null, { status: 404 });
-Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=600');
+Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=60');
+await tagPublicEvents(Astro.response);
 const jsonLd = JSON.stringify(eventJsonLd(e, Astro.url.origin)).replace(/</g, '\\u003c');
 ---
 

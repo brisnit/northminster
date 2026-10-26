@@ -12,6 +12,9 @@ import type { SessionUser } from './auth';
 import { occurrenceFor, seriesEnd, WEEKDAYS, type Freq, type Schedule } from './recurrence';
 import { DEFAULT_TZ, hhmm, isValidDate, isValidTime, isValidTimeZone } from './time';
 import { markChanged, syncEvent } from './calendar/sync';
+import { enqueueCalendarDeletion, processCalendarDeletion } from './calendar/deletions';
+import { deleteImage } from './images';
+import { purgePublicEvents } from './cache';
 
 export type EventStatus = EventRow['status'];
 export type Intent = 'draft' | 'publish' | 'save' | 'preview';
@@ -300,14 +303,46 @@ export async function duplicateEvent(id: string, user: SessionUser) {
   return newId;
 }
 
-/** Soft delete: hidden everywhere and removed from Google Calendar. */
-export async function deleteEvent(id: string, user: SessionUser) {
-  const before = await getEventRow(id);
-  if (!before || before.deletedAt) return { sync: null };
-  await db.update(event).set({ deletedAt: new Date(), featured: false, updatedBy: user.id, updatedAt: new Date() }).where(eq(event.id, id));
-  await audit(user, 'event.delete', 'event', id, { title: before.title, status: before.status });
-  const sync = await afterChange(id, { deletedAt: true }, visible(before.status) || before.onCalendar);
-  return { sync };
+/**
+ * Permanent deletion (Admins only — callers must check).
+ * 1. Record a durable calendar-removal job (before the row disappears).
+ * 2. Delete the row; only one concurrent request can "win" the delete.
+ * 3. Keep a minimal audit entry (who/when/title) and strip the event's
+ *    earlier audit diffs so its full content isn't retained.
+ * 4. Remove the photo if no other event uses it, purge cached pages, and
+ *    remove the Google Calendar entry (the whole series, if recurring).
+ */
+export async function purgeEvent(id: string, user: SessionUser) {
+  const row = await getEventRow(id);
+  if (!row) return { alreadyGone: true as const };
+
+  const now = new Date();
+  const mayBeOnCalendar = row.onCalendar || row.syncedVersion > 0 || row.publishedAt !== null || row.syncStatus === 'pending' || row.syncStatus === 'error';
+  // If a sync is mid-flight, schedule the removal for after it finishes so it can't be undone by it.
+  const busyUntil = row.syncLockedUntil && row.syncLockedUntil > now ? row.syncLockedUntil : null;
+  if (mayBeOnCalendar) await enqueueCalendarDeletion(row.googleEventId, busyUntil ? new Date(busyUntil.getTime() + 5_000) : now);
+
+  const [gone] = await db.delete(event).where(eq(event.id, id)).returning({ title: event.title, imageId: event.imageId, googleEventId: event.googleEventId });
+  if (!gone) return { alreadyGone: true as const };
+
+  await db.update(auditLog).set({ changes: null }).where(and(eq(auditLog.entityType, 'event'), eq(auditLog.entityId, id)));
+  await audit(user, 'event.purge', 'event', id, { title: gone.title, calendarRemoval: mayBeOnCalendar });
+
+  const imageUrls: string[] = [];
+  if (gone.imageId) {
+    const [stillUsed] = await db.select({ id: event.id }).from(event).where(eq(event.imageId, gone.imageId)).limit(1);
+    if (!stillUsed) {
+      const [img] = await db.select({ url: eventImage.url }).from(eventImage).where(eq(eventImage.id, gone.imageId));
+      if (img) imageUrls.push(img.url);
+      await deleteImage(gone.imageId);
+    }
+  }
+  await purgePublicEvents(imageUrls.filter((u) => u.startsWith('http')));
+
+  const calendar = !mayBeOnCalendar ? null
+    : busyUntil ? ({ ok: false, status: 'pending' } as const)
+    : await processCalendarDeletion(gone.googleEventId);
+  return { alreadyGone: false as const, title: gone.title, calendar };
 }
 
 export async function getEventRow(id: string) {

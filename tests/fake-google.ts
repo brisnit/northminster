@@ -4,7 +4,7 @@
  *  - insert with an existing id → 409 (even if that event was deleted)
  *  - update of an unknown id → 404; update can revive a deleted event
  *  - delete → 204, deleting again → 410
- * Control endpoints: POST /__fail?count=N&status=S, GET /__state, POST /__reset
+ * Control endpoints: POST /__fail?count=N&status=S, GET /__state, POST /__reset, POST /__clearlog
  */
 import http from 'node:http';
 
@@ -27,6 +27,7 @@ export function startFakeGoogle(port = 4599) {
 
     if (url.pathname === '/__fail') { failNext = Number(url.searchParams.get('count') ?? 1); failStatus = Number(url.searchParams.get('status') ?? 500); return send(200, { ok: true }); }
     if (url.pathname === '/__state') return send(200, { events: [...events.values()], log });
+    if (url.pathname === '/__clearlog') { log.length = 0; return send(200, {}); }
     if (url.pathname === '/__reset') { events.clear(); log.length = 0; failNext = 0; return send(200, {}); }
 
     if (req.headers.authorization !== 'Bearer test-token') return send(401, { error: { message: 'Invalid Credentials' } });

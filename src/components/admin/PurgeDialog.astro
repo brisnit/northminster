@@ -1,0 +1,49 @@
+---
+/**
+ * Shared confirmation dialog for permanent deletion (Admins only).
+ * Triggers: <button type="button" data-purge-id="…" data-purge-title="…">.
+ * The form posts confirm=permanent, which the server requires.
+ */
+---
+
+<dialog class="purge" id="purge-dialog" aria-labelledby="purge-title" aria-describedby="purge-desc">
+  <form method="post" data-purge-form>
+    <input type="hidden" name="action" value="purge" />
+    <h2 id="purge-title">Permanently delete this event?</h2>
+    <p id="purge-desc">
+      You’re about to permanently delete <strong data-purge-name></strong>. This will remove the event from the website
+      and its connected Google Calendar. This action cannot be undone.
+    </p>
+    <div class="purge__actions">
+      <button type="button" class="btn btn--ghost" data-purge-cancel autofocus>Keep Event</button>
+      <button type="submit" name="confirm" value="permanent" class="btn btn--danger">Delete Permanently</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  const dialog = document.getElementById('purge-dialog') as HTMLDialogElement | null;
+  const form = dialog?.querySelector<HTMLFormElement>('[data-purge-form]');
+  const name = dialog?.querySelector<HTMLElement>('[data-purge-name]');
+  let opener: HTMLElement | null = null;
+  document.querySelectorAll<HTMLButtonElement>('[data-purge-id]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!dialog || !form || !name) return;
+      opener = btn;
+      name.textContent = `“${btn.dataset.purgeTitle}”`; // text only — never HTML
+      form.action = `/api/admin/events/${encodeURIComponent(btn.dataset.purgeId!)}/action`;
+      dialog.showModal();
+    });
+  });
+  dialog?.querySelector('[data-purge-cancel]')?.addEventListener('click', () => dialog.close());
+  dialog?.addEventListener('close', () => opener?.focus());
+</script>
+
+<style>
+  .purge { width: min(32rem, calc(100vw - 2rem)); padding: 0; border: 0; border-radius: 10px; box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.5); }
+  .purge::backdrop { background: rgb(28 25 22 / 0.55); }
+  .purge form { display: grid; gap: 1rem; padding: clamp(1.25rem, 4vw, 2rem); border-top: 6px solid #9e2a14; }
+  .purge h2 { font-family: var(--display); font-weight: 450; font-size: 1.5rem; line-height: 1.15; }
+  .purge p { color: var(--ink); line-height: 1.55; overflow-wrap: anywhere; }
+  .purge__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.6rem; margin-top: 0.5rem; }
+</style>

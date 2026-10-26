@@ -6,6 +6,7 @@ import { db } from '@/db/client';
 import { auditLog } from '@/db/schema';
 import { calendarConfig, calendarConfigStatus, CalendarError, google } from '@/server/calendar/google';
 import { queueUnconfigured, syncDue } from '@/server/calendar/sync';
+import { pendingDeletions, processDueDeletions } from '@/server/calendar/deletions';
 import { audit, syncProblems } from '@/server/events';
 
 export const prerender = false;
@@ -23,12 +24,14 @@ if (Astro.request.method === 'POST') {
   } else if (action === 'sync') {
     const queued = await queueUnconfigured();
     const r = await syncDue(50);
-    const failed = r.filter((x) => !x.ok).length;
-    await audit(me, 'calendar.sync_all', 'settings', null, { queued, processed: r.length, failed });
-    result = { ok: failed === 0, text: `Processed ${r.length} event${r.length === 1 ? '' : 's'}${failed ? ` — ${failed} failed (see below)` : ' — all confirmed by Google'}.` };
+    const d = await processDueDeletions(50, { includeNotDue: true });
+    const failed = r.filter((x) => !x.ok).length + d.filter((x) => !x.ok).length;
+    await audit(me, 'calendar.sync_all', 'settings', null, { queued, processed: r.length, removals: d.length, failed });
+    result = { ok: failed === 0, text: `Processed ${r.length} event${r.length === 1 ? '' : 's'} and ${d.length} calendar removal${d.length === 1 ? '' : 's'}${failed ? ` — ${failed} failed (see below)` : ' — all confirmed by Google'}.` };
   }
 }
 const problems = await syncProblems();
+const removals = await pendingDeletions();
 const log = await db.select().from(auditLog).orderBy(desc(auditLog.createdAt)).limit(40);
 const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 const connected = Boolean(calendarConfig());
@@ -68,6 +71,16 @@ const connected = Boolean(calendarConfig());
       <h2>Events waiting on the calendar</h2>
       <ul role="list" class="problems">
         {problems.map((p) => <li><a href={`/admin/events/${p.id}/edit`}>{p.title}</a> <span class={`badge badge--${p.syncStatus === 'error' ? 'error' : 'pending'}`}>{p.syncStatus === 'error' ? 'Failed' : 'Not connected'}</span>{p.syncError && p.syncStatus === 'error' && <p class="hint">{p.syncError}</p>}</li>)}
+      </ul>
+    </div>
+  )}
+
+  {removals.length > 0 && (
+    <div class="card">
+      <h2>Calendar removals waiting</h2>
+      <p class="hint">Deleted events whose Google Calendar entry hasn’t been confirmed removed yet. These retry automatically; “Sync pending events now” retries them immediately.</p>
+      <ul role="list" class="problems">
+        {removals.map((r) => <li><code>{r.googleEventId}</code> <span class="badge badge--pending">{r.attempts} attempt{r.attempts === 1 ? '' : 's'}</span>{r.lastError && <p class="hint">{r.lastError}</p>}</li>)}
       </ul>
     </div>
   )}

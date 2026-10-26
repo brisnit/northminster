@@ -1,6 +1,7 @@
 ---
 import Admin from '@/layouts/Admin.astro';
 import SyncBadge from '@/components/admin/SyncBadge.astro';
+import PurgeDialog from '@/components/admin/PurgeDialog.astro';
 import { requireRole } from '@/server/guard';
 import { countsByStatus, listAdminEvents, type AdminView } from '@/server/events';
 import { describeRecurrence } from '@/server/recurrence';
@@ -8,7 +9,8 @@ import { fmtLongDate, fmtTime, fmtWeekday, hhmm } from '@/server/time';
 import { calendarConfig } from '@/server/calendar/google';
 
 export const prerender = false;
-requireRole(Astro, 'editor');
+const me = requireRole(Astro, 'editor');
+const isAdmin = me.role === 'admin';
 
 const views: { key: AdminView; label: string }[] = [
   { key: 'upcoming', label: 'Upcoming' },
@@ -87,7 +89,7 @@ const statusLabel = { draft: 'Draft', published: 'Published', cancelled: 'Cancel
                   {(e.status === 'published' || e.status === 'cancelled') && <a href={`/events/${e.slug}`} target="_blank" rel="noopener">View on website</a>}
                   <button name="action" value="duplicate">Duplicate</button>
                   {e.status !== 'archived' && <button name="action" value="archive" data-confirm={`Archive “${e.title}”? It will be hidden from the website and removed from Google Calendar. You can restore it later.`}>Archive</button>}
-                  <button name="action" value="delete" class="danger" data-confirm={`Delete “${e.title}” permanently? It will be removed from the website and Google Calendar. This can’t be undone.`}>Delete…</button>
+                  {isAdmin && <button type="button" class="danger" data-purge-id={e.id} data-purge-title={e.title}>Delete permanently…</button>}
                 </div>
               </details>
             </form>
@@ -96,6 +98,7 @@ const statusLabel = { draft: 'Draft', published: 'Published', cancelled: 'Cancel
       })}
     </ul>
   )}
+  {isAdmin && <PurgeDialog />}
 </Admin>
 
 <style>
@@ -125,5 +128,5 @@ const statusLabel = { draft: 'Draft', published: 'Published', cancelled: 'Cancel
   .more__menu { position: absolute; right: 0; z-index: 5; display: grid; min-width: 12rem; margin-top: 0.3rem; padding: 0.35rem; background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 30px -10px rgb(0 0 0 / 0.3); }
   .more__menu a, .more__menu button { display: block; width: 100%; text-align: left; padding: 0.6rem 0.75rem; border-radius: 4px; font-size: 0.9375rem; text-decoration: none; }
   .more__menu a:hover, .more__menu button:hover { background: var(--sand); }
-  .more__menu .danger { color: #9e2a14; font-weight: 600; }
+  .more__menu .danger { color: #9e2a14; font-weight: 700; border-top: 1px solid var(--line); margin-top: 0.25rem; padding-top: 0.75rem; }
 </style>

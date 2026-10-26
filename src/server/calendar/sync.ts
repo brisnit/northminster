@@ -94,7 +94,12 @@ export async function syncEvent(id: string, opts: { force?: boolean } = {}): Pro
     .set({ syncLockedUntil: new Date(now.getTime() + LOCK_SECONDS * 1000) })
     .where(and(eq(event.id, id), or(isNull(event.syncLockedUntil), lt(event.syncLockedUntil, now))))
     .returning();
-  if (!row) return { ok: false, status: 'pending', error: 'Another sync for this event is already running.' };
+  if (!row) {
+    const [exists] = await db.select({ id: event.id }).from(event).where(eq(event.id, id));
+    // Permanently deleted: never recreate it on Google.
+    if (!exists) return { ok: true, status: 'not_applicable' };
+    return { ok: false, status: 'pending', error: 'Another sync for this event is already running.' };
+  }
 
   const claimedVersion = row.syncVersion;
   const wantOnCalendar = shouldBeOnCalendar(row);

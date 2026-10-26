@@ -4,6 +4,7 @@
  * rest of the homepage stays static and fast, while events always come live
  * from the database. Cached briefly at the edge.
  */
+import { tagPublicEvents } from '@/server/cache';
 import SectionHeader from './SectionHeader.astro';
 import EventCard from './EventCard.astro';
 import Icon from './Icon.astro';
@@ -15,7 +16,8 @@ try {
 } catch (e) {
   console.error('Homepage events failed to load', e);
 }
-Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=600');
+Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=60');
+await tagPublicEvents(Astro.response);
 ---
 
 <section class="section happening" aria-labelledby="events-title">

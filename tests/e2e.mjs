@@ -260,27 +260,137 @@ await step('DST + recurring schedule are sent to Google correctly', async () => 
   assert.match(list, /Every Sunday/);
 });
 
-await step('Duplicate, archive and delete from the dashboard', async () => {
+await step('Duplicate from the dashboard creates a draft copy (not on Google)', async () => {
   await page.goto(`${BASE}/admin/events?view=all&q=Fall%20Back`, { waitUntil: 'networkidle0' });
   await press(page, '.more summary');
   await Promise.all([page.waitForNavigation(), press(page, 'button[value=duplicate]')]);
   assert.match(await flash(), /Copy created as a draft/);
   assert.equal(await page.$eval('#title', (el) => el.value), 'Fall Back Breakfast (copy)');
-  await page.goto(`${BASE}/admin/events?view=all&q=Fall%20Back%20Breakfast`, { waitUntil: 'networkidle0' });
-  const before = (await g()).events.filter((e) => e.summary === 'Fall Back Breakfast' && e.status === 'confirmed').length;
-  assert.equal(before, 1, 'the copy is a draft, not on Google');
-  // Delete the original (first row = published original sorted by date; both same date → find the published one)
-  const rows = await page.$$('.erow');
-  for (const row of rows) {
-    if (await row.$('.badge--published')) {
-      await (await row.$('.more summary')).evaluate((el) => el.click());
-      await Promise.all([page.waitForNavigation(), (await row.$('button[value=delete]')).evaluate((el) => el.click())]);
-      break;
-    }
+  assert.equal((await g()).events.filter((e) => e.summary === 'Fall Back Breakfast' && e.status === 'confirmed').length, 1);
+});
+
+/** Create + publish an event (optionally with a photo) through the real form endpoint. */
+async function createPublished(title, extra = {}, withImage = false) {
+  const cookie = await cookieHeader();
+  let imageId = '';
+  if (withImage) {
+    const fd = new FormData(); fd.append('file', new Blob([await readFile(`${FIX}/test-photo.jpg`)], { type: 'image/jpeg' }), 'p.jpg');
+    imageId = (await (await fetch(`${BASE}/api/admin/images`, { method: 'POST', body: fd, headers: { cookie, Origin: BASE, Accept: 'application/json' } })).json()).id;
   }
-  assert.match(await flash(), /deleted\. Google Calendar is up to date/);
-  assert.equal((await g()).events.find((e) => e.summary === 'Fall Back Breakfast').status, 'cancelled');
-  assert.doesNotMatch(await (await fetch(`${BASE}/events`)).text(), /Fall Back Breakfast/);
+  const body = new URLSearchParams({ title, startDate: '2026-12-02', startTime: '18:00', endTime: '19:00', timezone: 'America/Los_Angeles', recurrenceFreq: 'none', intent: 'publish', creationKey: `k-${title}`, featured: 'on', ...(imageId ? { imageId, imageAlt: 'test photo' } : {}), ...extra });
+  const r = await fetch(`${BASE}/admin/events/new`, { method: 'POST', redirect: 'manual', headers: { cookie, Origin: BASE, 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
+  const id = r.headers.get('location').match(/events\/([0-9a-f-]{36})\/edit/)[1];
+  const slug = (await (await fetch(`${BASE}/events`)).text()).match(new RegExp(`href="/events/(${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}[^"]*)"`))?.[1];
+  return { id, slug, imageId };
+}
+/** Flash message from a 303 redirect (query strings use + for spaces). */
+const flashOf = (r) => { const u = new URL(r.headers.get('location'), BASE); return u.searchParams.get('notice') ?? u.searchParams.get('error') ?? ''; };
+const purgeReq = (id, cookie, confirm = 'permanent') => fetch(`${BASE}/api/admin/events/${id}/action`, {
+  method: 'POST', redirect: 'manual', headers: { cookie, Origin: BASE, 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({ action: 'purge', ...(confirm ? { confirm } : {}) }).toString(),
+});
+
+let purgeTarget = null;
+await step('Permanent delete: confirmation dialog, Keep Event, then Delete Permanently (recurring + photo)', async () => {
+  purgeTarget = await createPublished('Purge Me Weekly', { recurrenceFreq: 'weekly', recurrenceByDay: 'WE', recurrenceExceptions: '2026-12-23' }, true);
+  const gev = (await g()).events.find((e) => e.summary === 'Purge Me Weekly');
+  assert.ok(gev && gev.status === 'confirmed' && gev.recurrence[0].startsWith('RRULE:FREQ=WEEKLY'), 'recurring series on Google');
+  purgeTarget.googleId = gev.id;
+  await page.goto(`${BASE}/admin/events/${purgeTarget.id}/edit`, { waitUntil: 'networkidle0' });
+  purgeTarget.imageUrl = await page.$eval('[data-preview-img]', (el) => el.getAttribute('src'));
+  assert.equal((await fetch(BASE + purgeTarget.imageUrl)).status, 200);
+  const publicBefore = (await (await fetch(`${BASE}/events`)).text()).match(/<li class="erow/g).length;
+
+  // Dialog with the exact copy; "Keep Event" does nothing.
+  await press(page, '.danger-zone [data-purge-id]');
+  await page.waitForSelector('#purge-dialog[open]');
+  const text = await page.$eval('#purge-dialog', (d) => d.textContent.replace(/\s+/g, ' '));
+  assert.match(text, /Permanently delete this event\?/);
+  assert.match(text, /You’re about to permanently delete “Purge Me Weekly”\. This will remove the event from the website and its connected Google Calendar\. This action cannot be undone\./);
+  assert.match(text, /Keep Event/); assert.match(text, /Delete Permanently/);
+  await press(page, '[data-purge-cancel]');
+  assert.equal(await page.$eval('#purge-dialog', (d) => d.open), false);
+  assert.equal((await fetch(`${BASE}/events/${purgeTarget.slug}`)).status, 200, 'kept');
+
+  await press(page, '.danger-zone [data-purge-id]');
+  await Promise.all([page.waitForNavigation(), press(page, '#purge-dialog button[value=permanent]')]);
+  assert.match(await flash(), /“Purge Me Weekly” was permanently deleted\. It was removed from Google Calendar\./);
+
+  const state = await g();
+  assert.equal(state.events.find((e) => e.id === purgeTarget.googleId).status, 'cancelled', 'series deleted on Google');
+  assert.ok(state.log.includes(`DELETE ${purgeTarget.googleId}`), 'DELETE sent for the stored calendar id');
+  assert.equal(state.events.filter((e) => e.status === 'confirmed' && e.summary !== 'Purge Me Weekly').length >= 1, true, 'other calendar entries untouched');
+  assert.equal((await fetch(`${BASE}/events/${purgeTarget.slug}`)).status, 404);
+  const listAfter = await (await fetch(`${BASE}/events`)).text();
+  assert.doesNotMatch(listAfter, /Purge Me Weekly/);
+  assert.equal(listAfter.match(/<li class="erow/g).length, publicBefore - 1, 'other events unaffected');
+  const home = await browser.newPage();
+  await home.goto(BASE, { waitUntil: 'networkidle0' });
+  await home.waitForSelector('.happening__grid', { timeout: 15000 });
+  assert.doesNotMatch(await home.$eval('.happening', (el) => el.textContent), /Purge Me Weekly/);
+  await home.close();
+  assert.equal((await fetch(BASE + purgeTarget.imageUrl)).status, 404, 'unused photo file removed');
+  const cookie = await cookieHeader();
+  assert.equal(((await (await fetch(`${BASE}/admin/events?view=all&q=Purge%20Me`, { headers: { cookie } })).text()).match(/class="erow__title"/g) || []).length, 0, 'row gone from the database');
+});
+
+await step('Repeat / duplicate delete requests are harmless', async () => {
+  const r = await purgeReq(purgeTarget.id, await cookieHeader());
+  assert.equal(r.status, 303);
+  assert.match(flashOf(r), /already deleted/);
+});
+
+await step('Background sync and cron can’t recreate a deleted event', async () => {
+  await g('/__clearlog', { method: 'POST' });
+  const r = await fetch(`${BASE}/api/cron/calendar-sync`, { headers: { authorization: 'Bearer test-cron-secret' } });
+  assert.equal(r.status, 200);
+  assert.equal((await g()).events.find((e) => e.id === purgeTarget.googleId).status, 'cancelled');
+  assert.ok(!(await g()).log.some((l) => l === `PUT ${purgeTarget.googleId}` || l === 'POST'), 'no recreate calls');
+});
+
+await step('A shared photo is kept when another event still uses it', async () => {
+  const a = await createPublished('Shared Photo A', {}, true);
+  const b = await createPublished('Shared Photo B', { imageId: a.imageId, imageAlt: 'same photo' });
+  await page.goto(`${BASE}/admin/events/${a.id}/edit`, { waitUntil: 'networkidle0' });
+  const url = await page.$eval('[data-preview-img]', (el) => el.getAttribute('src'));
+  const r = await purgeReq(a.id, await cookieHeader());
+  assert.match(flashOf(r), /permanently deleted/);
+  assert.equal((await fetch(BASE + url)).status, 200, 'still used by B');
+  assert.equal((await fetch(`${BASE}/events/${b.slug}`)).status, 200);
+});
+
+await step('Unconfirmed delete requests do nothing', async () => {
+  const t = await createPublished('Not Confirmed');
+  const r = await purgeReq(t.id, await cookieHeader(), '');
+  assert.match(flashOf(r), /not confirmed/);
+  assert.equal((await fetch(`${BASE}/events/${t.slug}`)).status, 200);
+});
+
+await step('Failed calendar deletion is queued durably and retried', async () => {
+  const t = await createPublished('Calendar Down Test');
+  const googleId = (await g()).events.find((e) => e.summary === 'Calendar Down Test').id;
+  await g('/__fail?count=1&status=503', { method: 'POST' });
+  const r = await purgeReq(t.id, await cookieHeader());
+  assert.match(flashOf(r), /queued and will retry/);
+  assert.equal((await fetch(`${BASE}/events/${t.slug}`)).status, 404, 'gone from the website immediately');
+  assert.equal((await g()).events.find((e) => e.id === googleId).status, 'confirmed', 'still on Google for now');
+  await page.goto(`${BASE}/admin/settings`, { waitUntil: 'networkidle0' });
+  assert.match(await page.content(), new RegExp(`Calendar removals waiting[\\s\\S]*${googleId}`));
+  await Promise.all([page.waitForNavigation(), press(page, 'button[value=sync]')]);
+  assert.equal((await g()).events.find((e) => e.id === googleId).status, 'cancelled', 'retry removed it');
+  assert.doesNotMatch(await page.content(), /Calendar removals waiting/);
+});
+
+await step('Unauthenticated and cross-site delete requests are rejected', async () => {
+  const t = await createPublished('Security Check Event');
+  const anon = await fetch(`${BASE}/api/admin/events/${t.id}/action`, { method: 'POST', headers: { Origin: BASE, Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'action=purge&confirm=permanent' });
+  assert.equal(anon.status, 401);
+  const xsite = await fetch(`${BASE}/api/admin/events/${t.id}/action`, { method: 'POST', headers: { cookie: await cookieHeader(), Origin: 'https://evil.example', 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'action=purge&confirm=permanent' });
+  assert.equal(xsite.status, 403);
+  const get = await fetch(`${BASE}/api/admin/events/${t.id}/action?action=purge&confirm=permanent`, { headers: { cookie: await cookieHeader() } });
+  assert.notEqual(get.status, 303);
+  assert.equal((await fetch(`${BASE}/events/${t.slug}`)).status, 200, 'still there');
+  globalThis.securityEvent = t;
 });
 
 let editorLink = '';
@@ -306,6 +416,14 @@ await step('Admin invites an Editor; Editors can’t manage staff or settings', 
   assert.equal((await fetch(`${BASE}/admin/settings`, { headers: { cookie } })).status, 403);
   const promote = await fetch(`${BASE}/admin/staff`, { method: 'POST', headers: { cookie, Origin: BASE, 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'action=role&role=admin&id=x' });
   assert.equal(promote.status, 403);
+  // Editors can't permanently delete — no button, and the server refuses.
+  await p2.goto(`${BASE}/admin/events?view=all`, { waitUntil: 'networkidle0' });
+  assert.equal(await p2.$('[data-purge-id]'), null);
+  await p2.goto(`${BASE}/admin/events/${globalThis.securityEvent.id}/edit`, { waitUntil: 'networkidle0' });
+  assert.equal(await p2.$('.danger-zone'), null);
+  const tryPurge = await purgeReq(globalThis.securityEvent.id, cookie);
+  assert.equal(tryPurge.status, 403);
+  assert.equal((await fetch(`${BASE}/events/${globalThis.securityEvent.slug}`)).status, 200, 'editor could not delete it');
   await ctx.close();
 });
 

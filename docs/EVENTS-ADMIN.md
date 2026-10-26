@@ -43,7 +43,7 @@ You can also:
 | Call it off but let people know | **Cancel event** | Stays listed, marked **Cancelled** | Title becomes "CANCELLED: …" |
 | Take it down for now | **Unpublish** | Hidden | Removed |
 | Put it away (keep a record) | More → **Archive** | Hidden | Removed |
-| Get rid of it | More → **Delete** | Hidden | Removed |
+| Get rid of it forever (**Admins only**) | More → **Delete permanently…**, or **Danger zone** on the edit page | Removed; its page returns “not found” | Removed (whole series, if repeating) |
 | Make a similar event | More → **Duplicate**, then change the date | New draft | Nothing until you publish |
 
 **Featured** events get first place in the homepage's "What's happening" section. Past events drop off automatically.
@@ -73,6 +73,9 @@ Ask an administrator to press **Reset password** next to your name in **Staff**.
   - There must always be at least one active administrator.
 
 There is no public sign-up. The only way in is an invite from an administrator.
+
+### Permanent deletion
+Only administrators can permanently delete. A confirmation box explains what will happen; choose **Delete Permanently** to proceed or **Keep Event** to back out. The event and its photo (unless another event uses it) are erased, cached pages are cleared, and the Google Calendar entry is removed. The activity log keeps only who deleted which event, and when. If Google Calendar is unreachable, the removal is saved and retried automatically (Settings lists any still waiting). Editors can still Unpublish or Archive.
 
 ### Settings
 Settings shows the Google Calendar connection, with **Test connection** and **Sync pending events now** buttons. It also has a log of recent activity: who created, published, changed or deleted what.
@@ -124,7 +127,8 @@ The website writes to the church's existing calendar, **northminster4324@gmail.c
   | --- | --- |
   | published | event confirmed |
   | cancelled | confirmed, titled `CANCELLED: …` |
-  | draft / archived / deleted | removed (DELETE; 404/410 count as already gone) |
+  | draft / archived | removed (DELETE; 404/410 count as already gone) |
+  | permanently deleted | removed via the durable `calendar_deletion` queue (recorded before the row is deleted; the sync engine never recreates a missing row) |
 
 - **Failures:** the error text is stored in `sync_error`.
   - Network errors, 5xx and 429 retry with backoff of 1 min → 5 min → 30 min → 2 h → 6 h → 24 h.

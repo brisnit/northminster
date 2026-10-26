@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { timingSafeEqual } from 'node:crypto';
 import { syncDue } from '@/server/calendar/sync';
+import { processDueDeletions } from '@/server/calendar/deletions';
 import { env } from '@/server/env';
 
 export const prerender = false;
@@ -14,7 +15,11 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response('Unauthorized', { status: 401 });
   }
   const results = await syncDue(50);
-  return new Response(JSON.stringify({ processed: results.length, failed: results.filter((r) => !r.ok).length }), {
+  const removals = await processDueDeletions(50);
+  return new Response(JSON.stringify({
+    processed: results.length, failed: results.filter((r) => !r.ok).length,
+    removals: removals.length, removalsFailed: removals.filter((r) => !r.ok).length,
+  }), {
     headers: { 'Content-Type': 'application/json' },
   });
 };

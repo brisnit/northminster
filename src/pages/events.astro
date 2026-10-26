@@ -1,4 +1,5 @@
 ---
+import { tagPublicEvents } from '@/server/cache';
 import Base from '@/layouts/Base.astro';
 import PageHero from '@/components/PageHero.astro';
 import SectionHeader from '@/components/SectionHeader.astro';
@@ -20,7 +21,8 @@ try {
   console.error('Events failed to load', e);
 }
 // Fresh within a minute of a staff change; served from the edge cache meanwhile.
-Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=600');
+Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=60');
+await tagPublicEvents(Astro.response);
 const jsonLd = list.map((e) => eventJsonLd(e, Astro.url.origin));
 ---
 
