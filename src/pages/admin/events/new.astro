@@ -1,0 +1,38 @@
+---
+import { randomUUID } from 'node:crypto';
+import Admin from '@/layouts/Admin.astro';
+import EventForm from '@/components/admin/EventForm.astro';
+import { requireRole } from '@/server/guard';
+import { listCategories, type EventInput, type FieldErrors } from '@/server/events';
+import { handleEventPost } from '@/server/event-form-handler';
+import { getImageById } from '@/server/admin-queries';
+import { DEFAULT_TZ } from '@/server/time';
+
+export const prerender = false;
+const user = requireRole(Astro, 'editor');
+
+let values: EventInput = {
+  title: '', summary: '', descriptionHtml: '', categoryId: null, imageId: null, imageAlt: '', allDay: false, timezone: DEFAULT_TZ,
+  startDate: '', startTime: '', endDate: '', endTime: '', recurrenceFreq: 'none', recurrenceInterval: 1, recurrenceByDay: [],
+  recurrenceUntil: null, recurrenceExceptions: [], venue: '', address: '', audience: '', cost: '', details: [],
+  registrationRequired: false, registrationUrl: '', registrationLabel: '', contact: '', notes: '', featured: false,
+};
+let errors: FieldErrors = {};
+let creationKey: string = randomUUID();
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const res = await handleEventPost(form, user, null);
+  if (res.ok) return Astro.redirect(`/admin/events/${res.id}/edit?notice=${encodeURIComponent(res.message)}`, 303);
+  values = res.values; errors = res.errors;
+  creationKey = String(form.get('creationKey') ?? creationKey);
+  Astro.response.status = 422;
+}
+const categories = await listCategories();
+const image = values.imageId ? await getImageById(values.imageId) : null;
+---
+
+<Admin title="New event" wide>
+  <div class="page-head"><div><a href="/admin/events" class="admin-link">← All events</a><h1>New event</h1><p>Only the title and start date are required. Save a draft any time.</p></div></div>
+  <EventForm values={values} errors={errors} categories={categories} image={image} mode="new" creationKey={creationKey} />
+</Admin>

@@ -6,14 +6,13 @@ import Photo from '@/components/Photo.astro';
 import Icon from '@/components/Icon.astro';
 import VideoPlayer from '@/components/VideoPlayer.astro';
 import MessageCard from '@/components/MessageCard.astro';
-import EventCard from '@/components/EventCard.astro';
+import HomeEvents from '@/components/HomeEvents.astro';
 import MinistryCard from '@/components/MinistryCard.astro';
 import NewHereCTA from '@/components/NewHereCTA.astro';
 import PromoTout from '@/components/PromoTout.astro';
 
 import { church } from '@/config/site';
 import { sermons } from '@/content/sermons';
-import { upcomingEvents } from '@/content/events';
 import { ministries } from '@/content/ministries';
 import { formatDate } from '@/lib/dates';
 
@@ -31,7 +30,6 @@ import campusCanopy from '@/assets/photos/campus-canopy.jpg';
 import christmasImg from '@/assets/seasonal/christmas-narnia.png';
 
 const [latest, ...previous] = sermons;
-const featuredEvents = upcomingEvents().filter((e) => e.featured).slice(0, 4);
 ---
 
 <Base header="overlay">
@@ -179,23 +177,10 @@ const featuredEvents = upcomingEvents().filter((e) => e.featured).slice(0, 4);
     </div>
   </section>
 
-  <!-- WHAT'S HAPPENING -->
-  {featuredEvents.length > 0 && (
-    <section class="section happening" aria-labelledby="events-title">
-      <div class="container">
-        <SectionHeader eyebrow="What’s happening" title="Pull up <em>a chair.</em>" align="split" id="events-title"
-          intro="Dinners, movie nights, a night off for parents. There’s almost always something going on — and you’re invited to all of it.">
-          <a href="/events" class="btn btn--outline">See all events <Icon name="arrow" size={18} class="btn__arrow" /></a>
-        </SectionHeader>
-        <div class="happening__grid">
-          {featuredEvents.map((event, i) => (
-            <EventCard event={event} variant={i === 0 ? 'feature' : 'default'}
-              sizes={i === 0 ? '(min-width: 64em) 48vw, 85vw' : '(min-width: 64em) 24vw, 85vw'} />
-          ))}
-        </div>
-      </div>
-    </section>
-  )}
+  <!-- WHAT'S HAPPENING (live from the events database) -->
+  <HomeEvents server:defer>
+    <div slot="fallback" class="happening-placeholder" aria-hidden="true"></div>
+  </HomeEvents>
 
   <!-- FIND YOUR COMMUNITY -->
   <section class="section section--sand community" aria-labelledby="community-title">
@@ -320,15 +305,9 @@ const featuredEvents = upcomingEvents().filter((e) => e.featured).slice(0, 4);
   @media (min-width: 40em) { .messages__list { grid-template-columns: repeat(2, 1fr); } }
   @media (min-width: 64em) { .messages__list { grid-template-columns: repeat(3, 1fr); } }
 
-  /* Events */
-  .happening__grid { display: grid; gap: 2.5rem 1.5rem; }
-  @media (min-width: 40em) { .happening__grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 64em) {
-    .happening__grid { grid-template-columns: 2fr 1fr 1fr; grid-template-rows: auto auto; }
-    .happening__grid > :global(:first-child) { grid-row: span 2; }
-    .happening__grid > :global(:nth-child(4)) { grid-column: 2 / span 2; }
-    .happening__grid > :global(:nth-child(4) .ecard__link) { grid-template-columns: 1fr 1fr; align-items: start; }
-  }
+  /* Events (styles live in HomeEvents.astro) */
+  .happening-placeholder { min-height: clamp(48rem, 110vw, 62rem); }
+  @media (min-width: 64em) { .happening-placeholder { min-height: 58rem; } }
 
   /* Community */
   .community__grid { display: grid; gap: 3rem 1.5rem; }

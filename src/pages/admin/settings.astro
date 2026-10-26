@@ -1,0 +1,108 @@
+---
+import { desc } from 'drizzle-orm';
+import Admin from '@/layouts/Admin.astro';
+import { requireRole } from '@/server/guard';
+import { db } from '@/db/client';
+import { auditLog } from '@/db/schema';
+import { calendarConfig, calendarConfigStatus, CalendarError, google } from '@/server/calendar/google';
+import { queueUnconfigured, syncDue } from '@/server/calendar/sync';
+import { audit, syncProblems } from '@/server/events';
+
+export const prerender = false;
+const me = requireRole(Astro, 'admin');
+const status = calendarConfigStatus();
+let result: { ok: boolean; text: string } | null = null;
+
+if (Astro.request.method === 'POST') {
+  const action = String((await Astro.request.formData()).get('action'));
+  const cfg = calendarConfig();
+  if (!cfg) result = { ok: false, text: 'Google Calendar isn’t configured yet — see the setup steps below.' };
+  else if (action === 'test') {
+    try { await google.check(cfg); result = { ok: true, text: `Connected. The service account can read ${cfg.calendarId}. (Editing permission is confirmed on the first event sync.)` }; }
+    catch (e) { result = { ok: false, text: e instanceof CalendarError ? e.message : String(e) }; }
+  } else if (action === 'sync') {
+    const queued = await queueUnconfigured();
+    const r = await syncDue(50);
+    const failed = r.filter((x) => !x.ok).length;
+    await audit(me, 'calendar.sync_all', 'settings', null, { queued, processed: r.length, failed });
+    result = { ok: failed === 0, text: `Processed ${r.length} event${r.length === 1 ? '' : 's'}${failed ? ` — ${failed} failed (see below)` : ' — all confirmed by Google'}.` };
+  }
+}
+const problems = await syncProblems();
+const log = await db.select().from(auditLog).orderBy(desc(auditLog.createdAt)).limit(40);
+const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+const connected = Boolean(calendarConfig());
+---
+
+<Admin title="Settings">
+  <div class="page-head"><div><h1>Settings</h1><p>Integrations and activity. Administrators only.</p></div></div>
+  {result && <p class:list={['flash', result.ok ? 'flash--ok' : 'flash--error']} role="status">{result.text}</p>}
+
+  <div class="card">
+    <h2>Google Calendar</h2>
+    <dl class="kv">
+      <div><dt>Status</dt><dd>{connected ? <span class="badge badge--synced">Configured</span> : <span class="badge badge--pending">Not connected</span>}</dd></div>
+      <div><dt>Calendar</dt><dd>{status.calendarId ?? '— not set (GOOGLE_CALENDAR_ID)'}</dd></div>
+      <div><dt>Service account</dt><dd>{status.serviceAccountEmail ?? '— not set (GOOGLE_SERVICE_ACCOUNT_EMAIL)'}</dd></div>
+      <div><dt>Private key</dt><dd>{status.hasPrivateKey ? 'Present (hidden)' : '— not set (GOOGLE_PRIVATE_KEY)'}</dd></div>
+    </dl>
+    <form method="post" class="btn-row" style="margin-top:1.25rem">
+      <button name="action" value="test" class="btn btn--ghost btn--sm">Test connection</button>
+      <button name="action" value="sync" class="btn btn--teal btn--sm">Sync pending events now</button>
+    </form>
+    <details class="setup">
+      <summary>How to connect Google Calendar</summary>
+      <ol>
+        <li>In <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a>, create a project and enable the <strong>Google Calendar API</strong>.</li>
+        <li>Create a <strong>service account</strong>, then add a <strong>JSON key</strong> and download it.</li>
+        <li>Sign in to Google Calendar as <strong>northminster4324@gmail.com</strong> → Settings → the calendar → <strong>Share with specific people</strong> → add the service account email with <strong>“Make changes to events.”</strong></li>
+        <li>In Vercel → northminster → Settings → Environment Variables, add <code>GOOGLE_CALENDAR_ID</code>, <code>GOOGLE_SERVICE_ACCOUNT_EMAIL</code> and <code>GOOGLE_PRIVATE_KEY</code> (from the JSON key), then redeploy.</li>
+        <li>Come back here and press <strong>Test connection</strong>, then <strong>Sync pending events now</strong>.</li>
+      </ol>
+      <p class="hint">Full steps are in docs/EVENTS-ADMIN.md. Existing events already on that calendar are never changed — only events created here.</p>
+    </details>
+  </div>
+
+  {problems.length > 0 && (
+    <div class="card">
+      <h2>Events waiting on the calendar</h2>
+      <ul role="list" class="problems">
+        {problems.map((p) => <li><a href={`/admin/events/${p.id}/edit`}>{p.title}</a> <span class={`badge badge--${p.syncStatus === 'error' ? 'error' : 'pending'}`}>{p.syncStatus === 'error' ? 'Failed' : 'Not connected'}</span>{p.syncError && p.syncStatus === 'error' && <p class="hint">{p.syncError}</p>}</li>)}
+      </ul>
+    </div>
+  )}
+
+  <div class="card">
+    <h2>Recent activity</h2>
+    <table class="log">
+      <thead><tr><th scope="col">When</th><th scope="col">Who</th><th scope="col">What</th></tr></thead>
+      <tbody>
+        {log.map((l) => (
+          <tr>
+            <td>{fmt.format(l.createdAt)}</td>
+            <td>{l.actorEmail ?? 'System'}</td>
+            <td>{l.action.replaceAll('_', ' ').replaceAll('.', ' · ')}{l.entityType === 'event' && l.entityId && <> — <a href={`/admin/events/${l.entityId}/edit`}>open</a></>}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</Admin>
+
+<style>
+  .kv { display: grid; gap: 0.6rem; margin-top: 1rem; }
+  .kv div { display: grid; grid-template-columns: 9rem 1fr; gap: 1rem; }
+  .kv dt { font-weight: 650; color: var(--muted); }
+  .kv dd { overflow-wrap: anywhere; }
+  .setup { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+  .setup summary { font-weight: 650; cursor: pointer; min-height: 2.75rem; display: flex; align-items: center; }
+  .setup ol { padding-left: 1.3rem; display: grid; gap: 0.5rem; margin-block: 0.75rem; }
+  .setup a { color: var(--teal); }
+  .problems { display: grid; gap: 0.75rem; margin-top: 1rem; }
+  .problems a { font-weight: 650; color: var(--teal); }
+  .log { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9375rem; }
+  .log th, .log td { text-align: left; padding: 0.55rem 0.5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .log th { font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .log a { color: var(--teal); }
+  @media (max-width: 40em) { .kv div { grid-template-columns: 1fr; gap: 0.1rem; } .log td:nth-child(2) { overflow-wrap: anywhere; } }
+</style>

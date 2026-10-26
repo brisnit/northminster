@@ -1,12 +1,15 @@
 ---
-/** Label/value facts for a ministry or event: When, Where, Who, Cost… */
-interface Props { items: { label: string; value: string }[]; class?: string }
+/**
+ * Label/value facts for a ministry or event: When, Where, Who, Cost…
+ * Values are escaped text; set `html: true` only for trusted, hardcoded markup.
+ */
+interface Props { items: { label: string; value: string; html?: boolean }[]; class?: string }
 const { items, class: className } = Astro.props;
 ---
 
 <dl class:list={['facts', className]}>
   {items.map((i) => (
-    <div><dt>{i.label}</dt><dd set:html={i.value} /></div>
+    <div><dt>{i.label}</dt>{i.html ? <dd set:html={i.value} /> : <dd>{i.value}</dd>}</div>
   ))}
 </dl>
 

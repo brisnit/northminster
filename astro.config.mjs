@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig, fontProviders } from 'astro/config';
+import vercel from '@astrojs/vercel';
 
 const fontsource = (/** @type {string} */ file) => `./node_modules/@fontsource-variable/${file}`;
 
@@ -7,6 +8,17 @@ export default defineConfig({
   // TODO(Northminster): confirm the production domain before launch.
   site: 'https://www.northminstersandiego.com',
   compressHTML: false,
+  // Most pages are prerendered (static). Pages that read the events database
+  // (/events, /events/[slug], the homepage events island, /admin) render on demand.
+  adapter: vercel({
+    imageService: true,
+    maxDuration: 30,
+  }),
+  image: {
+    // Event photos uploaded through the admin live in Vercel Blob.
+    remotePatterns: [{ protocol: 'https', hostname: '**.public.blob.vercel-storage.com' }],
+  },
+  security: { checkOrigin: true },
   devToolbar: { enabled: false },
   // Old Squarespace URLs → new pages, so existing links and search results keep working.
   redirects: {

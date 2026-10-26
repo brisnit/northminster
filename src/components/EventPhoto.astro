@@ -1,0 +1,36 @@
+---
+import { getImage } from 'astro:assets';
+import type { PublicImage } from '@/server/public-events';
+
+/**
+ * Responsive image for an uploaded event photo. Always cropped to the same
+ * aspect ratio, centered on the photo's focal point. Optimized by Vercel's
+ * image service in production.
+ */
+interface Props { image: PublicImage; ratio?: string; sizes?: string; priority?: boolean; class?: string }
+const { image, ratio = '4 / 3', sizes = '(min-width: 64em) 30vw, 100vw', priority = false, class: className } = Astro.props;
+
+const widths = [480, 720, 960, 1280, 1600].filter((w) => w <= image.width);
+if (!widths.length) widths.push(image.width);
+const isLocal = image.url.startsWith('/');
+const variants = isLocal
+  ? [{ w: image.width, src: image.url }]
+  : await Promise.all(widths.map(async (w) => ({ w, src: (await getImage({ src: image.url, width: w, height: Math.round((image.height * w) / image.width), format: 'webp', quality: 72 })).src })));
+const srcset = variants.map((v) => `${v.src} ${v.w}w`).join(', ');
+const fallback = variants[Math.min(1, variants.length - 1)].src;
+---
+
+<div class:list={['media', 'media--zoom', className]} style={`aspect-ratio:${ratio}`}>
+  <img
+    src={fallback}
+    srcset={srcset}
+    sizes={sizes}
+    alt={image.alt}
+    width={image.width}
+    height={image.height}
+    loading={priority ? 'eager' : 'lazy'}
+    decoding="async"
+    fetchpriority={priority ? 'high' : undefined}
+    style={`object-position:${Math.round(image.focalX * 100)}% ${Math.round(image.focalY * 100)}%`}
+  />
+</div>

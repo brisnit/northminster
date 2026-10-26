@@ -1,0 +1,35 @@
+---
+import Admin from '@/layouts/Admin.astro';
+export const prerender = false;
+const user = Astro.locals.user!;
+---
+
+<Admin title="My account">
+  <div class="page-head"><div><h1>My account</h1><p>{user.name} · {user.email} · {user.role === 'admin' ? 'Administrator' : 'Editor'}</p></div></div>
+  <div class="card">
+    <h2>Change password</h2>
+    <form id="pw-form" data-allow-resubmit novalidate style="margin-top:1rem;max-width:26rem">
+      <div class="field"><label for="cur">Current password</label><input id="cur" type="password" autocomplete="current-password" required /></div>
+      <div class="field"><label for="new">New password</label><input id="new" type="password" autocomplete="new-password" minlength="10" required /><span class="hint">At least 10 characters.</span></div>
+      <p class="field-error" id="pw-msg" role="alert" hidden></p>
+      <button class="btn btn--teal" style="margin-top:1.25rem">Update password</button>
+    </form>
+  </div>
+  <script>
+    const f = document.getElementById('pw-form') as HTMLFormElement;
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('pw-msg')!;
+      const cur = (document.getElementById('cur') as HTMLInputElement).value;
+      const nw = (document.getElementById('new') as HTMLInputElement).value;
+      msg.hidden = false; msg.style.color = '';
+      if (nw.length < 10) { msg.textContent = 'Use at least 10 characters.'; return; }
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: cur, newPassword: nw, revokeOtherSessions: true }),
+      });
+      if (res.ok) { msg.style.color = '#134a2f'; msg.textContent = 'Password updated. Other devices were signed out.'; f.reset(); }
+      else msg.textContent = 'Your current password is incorrect.';
+    });
+  </script>
+</Admin>

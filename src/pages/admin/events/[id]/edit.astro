@@ -1,0 +1,48 @@
+---
+import Admin from '@/layouts/Admin.astro';
+import EventForm from '@/components/admin/EventForm.astro';
+import SyncBadge from '@/components/admin/SyncBadge.astro';
+import { requireRole } from '@/server/guard';
+import { getEventWithImage, listCategories, rowToInput, type EventInput, type FieldErrors } from '@/server/events';
+import { handleEventPost } from '@/server/event-form-handler';
+import { getImageById } from '@/server/admin-queries';
+
+export const prerender = false;
+const user = requireRole(Astro, 'editor');
+const found = await getEventWithImage(Astro.params.id ?? '');
+if (!found || found.event.deletedAt) return new Response('Event not found', { status: 404 });
+const ev = found.event;
+
+let values: EventInput = rowToInput(ev);
+let errors: FieldErrors = {};
+let focal: { x?: number; y?: number } = {};
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const res = await handleEventPost(form, user, { id: ev.id, imageId: ev.imageId, status: ev.status });
+  if (res.ok) return Astro.redirect(`/admin/events/${ev.id}/edit?notice=${encodeURIComponent(res.message)}`, 303);
+  values = res.values; errors = res.errors;
+  focal = { x: Number(form.get('focalX')), y: Number(form.get('focalY')) };
+  Astro.response.status = 422;
+}
+const categories = await listCategories();
+const image = values.imageId ? (values.imageId === found.image?.id ? found.image : await getImageById(values.imageId)) : null;
+---
+
+<Admin title={`Edit: ${ev.title}`} wide>
+  <div class="page-head">
+    <div>
+      <a href="/admin/events" class="admin-link">← All events</a>
+      <h1>{ev.title}</h1>
+      <p>
+        {(ev.status === 'published' || ev.status === 'cancelled') && <a href={`/events/${ev.slug}`} target="_blank" rel="noopener" class="admin-link">View on website</a>}
+        <span style="margin-left:0.75rem"><SyncBadge event={ev} /></span>
+      </p>
+    </div>
+    {(ev.syncStatus === 'error' || ev.syncStatus === 'pending') && (
+      <form method="post" action={`/api/admin/events/${ev.id}/action`}><button name="action" value="retry_sync" class="btn btn--ghost btn--sm">Retry sync</button></form>
+    )}
+  </div>
+  {ev.syncError && ev.syncStatus === 'error' && <p class="flash flash--error">Google Calendar: {ev.syncError}</p>}
+  <EventForm values={values} errors={errors} categories={categories} image={image} mode="edit" status={ev.status} focalX={focal.x} focalY={focal.y} />
+</Admin>

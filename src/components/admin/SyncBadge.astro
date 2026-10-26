@@ -1,0 +1,17 @@
+---
+import type { EventRow } from '@/db/schema';
+/** Honest Google Calendar status for one event. */
+interface Props { event: Pick<EventRow, 'syncStatus' | 'onCalendar' | 'status' | 'lastSyncedAt' | 'syncError' | 'syncedVersion'> }
+const { event: e } = Astro.props;
+const label = (() => {
+  switch (e.syncStatus) {
+    case 'synced': return e.onCalendar ? ['synced', 'On Google Calendar'] : ['muted', 'Removed from calendar'];
+    case 'pending': return ['pending', 'Calendar update pending'];
+    case 'error': return ['error', 'Calendar sync failed'];
+    case 'not_configured': return ['pending', 'Calendar not connected'];
+    default: return ['muted', 'Not on calendar'];
+  }
+})();
+const when = e.lastSyncedAt ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(e.lastSyncedAt) : null;
+---
+<span class={`badge badge--${label[0]}`} title={e.syncError ?? (when ? `Last confirmed by Google: ${when}` : undefined)}>{label[1]}</span>

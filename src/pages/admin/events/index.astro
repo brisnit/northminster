@@ -1,0 +1,129 @@
+---
+import Admin from '@/layouts/Admin.astro';
+import SyncBadge from '@/components/admin/SyncBadge.astro';
+import { requireRole } from '@/server/guard';
+import { countsByStatus, listAdminEvents, type AdminView } from '@/server/events';
+import { describeRecurrence } from '@/server/recurrence';
+import { fmtLongDate, fmtTime, fmtWeekday, hhmm } from '@/server/time';
+import { calendarConfig } from '@/server/calendar/google';
+
+export const prerender = false;
+requireRole(Astro, 'editor');
+
+const views: { key: AdminView; label: string }[] = [
+  { key: 'upcoming', label: 'Upcoming' },
+  { key: 'draft', label: 'Drafts' },
+  { key: 'published', label: 'Published' },
+  { key: 'cancelled', label: 'Cancelled' },
+  { key: 'past', label: 'Past' },
+  { key: 'archived', label: 'Archived' },
+  { key: 'all', label: 'All' },
+];
+const viewParam = Astro.url.searchParams.get('view') as AdminView | null;
+const view = views.some((v) => v.key === viewParam) ? viewParam! : 'upcoming';
+const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, 100);
+const [rows, counts] = await Promise.all([listAdminEvents(view, q), countsByStatus()]);
+const calendarConnected = Boolean(calendarConfig());
+const statusLabel = { draft: 'Draft', published: 'Published', cancelled: 'Cancelled', archived: 'Archived' } as const;
+---
+
+<Admin title="Events" wide>
+  <div class="page-head">
+    <div>
+      <h1>Events</h1>
+      <p>{counts.published ?? 0} published · {counts.draft ?? 0} drafts{!calendarConnected && ' · Google Calendar not connected yet'}</p>
+    </div>
+    <a href="/admin/events/new" class="btn btn--teal">+ New event</a>
+  </div>
+
+  <div class="toolbar">
+    <nav aria-label="Filter events" class="tabs">
+      {views.map((v) => (
+        <a href={`?view=${v.key}${q ? `&q=${encodeURIComponent(q)}` : ''}`} aria-current={v.key === view ? 'page' : undefined}>{v.label}</a>
+      ))}
+    </nav>
+    <form method="get" role="search" class="search" data-allow-resubmit>
+      <input type="hidden" name="view" value={view} />
+      <label for="q" class="visually-hidden">Search by title</label>
+      <input id="q" name="q" type="search" value={q} placeholder="Search by title…" />
+      <button class="btn btn--ghost btn--sm">Search</button>
+    </form>
+  </div>
+
+  {rows.length === 0 ? (
+    <div class="card empty">
+      <p class="h4">{q ? `No events match “${q}”.` : view === 'upcoming' ? 'No upcoming events yet.' : 'Nothing here.'}</p>
+      {!q && view === 'upcoming' && <p><a href="/admin/events/new" class="btn btn--teal btn--sm">Create your first event</a></p>}
+    </div>
+  ) : (
+    <ul role="list" class="elist">
+      {rows.map(({ event: e, image }) => {
+        const rec = describeRecurrence({ ...e, startTime: hhmm(e.startTime), endTime: hhmm(e.endTime) });
+        const time = e.allDay ? 'All day' : e.startTime ? fmtTime(e.startTime) : '';
+        return (
+          <li class="erow">
+            <a href={`/admin/events/${e.id}/edit`} class="erow__thumb" tabindex="-1" aria-hidden="true">
+              {image ? <img src={image.url} alt="" loading="lazy" style={`object-position:${image.focalX * 100}% ${image.focalY * 100}%`} /> : <span>{e.title.slice(0, 1)}</span>}
+            </a>
+            <div class="erow__info">
+              <a href={`/admin/events/${e.id}/edit`} class="erow__title">{e.title}</a>
+              <p class="erow__meta">{fmtWeekday(e.startDate)}, {fmtLongDate(e.startDate)}{time && ` · ${time}`}{rec && ` · ${rec}`}{e.venue && ` · ${e.venue}`}</p>
+              <p class="erow__badges">
+                <span class={`badge badge--${e.status}`}>{statusLabel[e.status]}</span>
+                {e.featured && <span class="badge badge--synced">Featured</span>}
+                <SyncBadge event={e} />
+              </p>
+            </div>
+            <form method="post" action={`/api/admin/events/${e.id}/action`} class="erow__actions">
+              <a href={`/admin/events/${e.id}/edit`} class="btn btn--ghost btn--sm">Edit</a>
+              {e.status === 'draft' && <button name="action" value="publish" class="btn btn--ghost btn--sm">Publish</button>}
+              {e.status === 'published' && <button name="action" value="unpublish" class="btn btn--ghost btn--sm" data-confirm={`Unpublish “${e.title}”? It will be removed from the website and Google Calendar.`}>Unpublish</button>}
+              {e.status === 'published' && <button name="action" value="cancel" class="btn btn--ghost btn--sm" data-confirm={`Mark “${e.title}” as cancelled? It stays listed with a “Cancelled” label.`}>Cancel</button>}
+              {e.status === 'archived' && <button name="action" value="restore" class="btn btn--ghost btn--sm">Restore</button>}
+              {(e.syncStatus === 'error' || e.syncStatus === 'pending') && <button name="action" value="retry_sync" class="btn btn--ghost btn--sm">Retry sync</button>}
+              <details class="more">
+                <summary class="btn btn--ghost btn--sm" aria-label={`More actions for ${e.title}`}>More</summary>
+                <div class="more__menu">
+                  {(e.status === 'published' || e.status === 'cancelled') && <a href={`/events/${e.slug}`} target="_blank" rel="noopener">View on website</a>}
+                  <button name="action" value="duplicate">Duplicate</button>
+                  {e.status !== 'archived' && <button name="action" value="archive" data-confirm={`Archive “${e.title}”? It will be hidden from the website and removed from Google Calendar. You can restore it later.`}>Archive</button>}
+                  <button name="action" value="delete" class="danger" data-confirm={`Delete “${e.title}” permanently? It will be removed from the website and Google Calendar. This can’t be undone.`}>Delete…</button>
+                </div>
+              </details>
+            </form>
+          </li>
+        );
+      })}
+    </ul>
+  )}
+</Admin>
+
+<style>
+  .toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  .tabs a { padding: 0.5rem 0.85rem; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 0.9375rem; border: 1px solid var(--line); background: var(--paper); }
+  .tabs a[aria-current='page'] { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .search { display: flex; gap: 0.5rem; min-width: min(100%, 22rem); }
+  .empty { display: grid; gap: 1rem; justify-items: start; }
+
+  .elist { display: grid; gap: 0.75rem; }
+  .erow { display: grid; grid-template-columns: 4.5rem 1fr; gap: 1rem; align-items: center; padding: 0.9rem; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+  @media (min-width: 56em) { .erow { grid-template-columns: 5.5rem 1fr auto; } }
+  .erow__thumb { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: 6px; overflow: hidden; background: var(--teal-deep); color: #fff; font-family: var(--display); font-size: 1.5rem; text-decoration: none; }
+  .erow__thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .erow__info { display: grid; gap: 0.3rem; min-width: 0; }
+  .erow__title { font-family: var(--display); font-size: 1.25rem; font-weight: 450; line-height: 1.2; text-decoration: none; }
+  .erow__title:hover { text-decoration: underline; }
+  .erow__meta { color: var(--muted); font-size: 0.9375rem; }
+  .erow__badges { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+  .erow__actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-start; }
+  @media (min-width: 56em) { .erow__actions { grid-column: auto; justify-content: flex-end; } }
+
+  .more { position: relative; }
+  .more summary { list-style: none; cursor: pointer; }
+  .more summary::-webkit-details-marker { display: none; }
+  .more__menu { position: absolute; right: 0; z-index: 5; display: grid; min-width: 12rem; margin-top: 0.3rem; padding: 0.35rem; background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 30px -10px rgb(0 0 0 / 0.3); }
+  .more__menu a, .more__menu button { display: block; width: 100%; text-align: left; padding: 0.6rem 0.75rem; border-radius: 4px; font-size: 0.9375rem; text-decoration: none; }
+  .more__menu a:hover, .more__menu button:hover { background: var(--sand); }
+  .more__menu .danger { color: #9e2a14; font-weight: 600; }
+</style>

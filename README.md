@@ -2,7 +2,7 @@
 
 A rebuild of northminstersandiego.squarespace.com, designed first for someone who has never been to Northminster.
 
-- **Stack:** [Astro 7](https://astro.build), a static site with no framework runtime. It ships about 5 KB of JavaScript, and only for progressive enhancements.
+- **Stack:** [Astro 7](https://astro.build) on Vercel. Most pages are static; events, the staff admin (`/admin`) and APIs run on demand with Neon Postgres, Vercel Blob and Better Auth. It ships about 5 KB of JavaScript, and only for progressive enhancements.
 - **Fonts:** Fraunces (display) and Hanken Grotesk (body), self-hosted through Astro's Fonts API with preloading and metric-matched fallbacks.
 - **Images:** real Northminster photos. They are optimized at build time into responsive WebP.
 - **Audits** (mobile, throttled): Lighthouse Performance 95–99. Accessibility, Best Practices and SEO all score 100. axe-core found 0 WCAG 2.1 AA violations across every page at 390px and 1440px.
@@ -33,7 +33,7 @@ All content lives in typed files in `src/content/`. No page code needs to change
 | To… | Edit | How |
 | --- | --- | --- |
 | Add Sunday's message | `src/content/sermons.ts` | Copy the top entry and paste it above. Update the title, date, scripture, YouTube ID (from the YouTube URL) and MP3 URL. The newest message is featured automatically. |
-| Add an event | `src/content/events.ts` | Add an entry with `start`/`end` in Pacific time (`2026-10-16T18:00`). Set `featured: true` to show it on the homepage (the first 4 upcoming featured events appear). |
+| Add or change an event | **Staff admin at `/admin`** | No code needed. See [docs/EVENTS-ADMIN.md](docs/EVENTS-ADMIN.md). Events sync to Google Calendar. |
 | Change the weekly schedule | `weeklyRhythm` in `src/content/events.ts` | |
 | Staff | `src/content/staff.ts` | Photos go in `src/assets/staff/`. |
 | Ministries (homepage and Connect cards) | `src/content/ministries.ts` | |
@@ -58,6 +58,7 @@ src/
 docs/
   AUDIT.md              Audit of the old site, Elevation takeaways, sitemap
   CONTENT-FLAGS.md      Facts Northminster must confirm
+  EVENTS-ADMIN.md       Events CMS: staff guide, admin guide, Google Calendar setup, architecture
   DESIGN-SYSTEM.md      Color, type, components, motion, accessibility
   PHOTOGRAPHY.md        Shot list for a volunteer photographer
 ```

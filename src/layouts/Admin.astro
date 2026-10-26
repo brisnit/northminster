@@ -1,0 +1,157 @@
+---
+/**
+ * Staff admin layout. Uses the site's fonts and color tokens, but a calmer,
+ * denser UI tuned for forms. Never indexed or cached (see middleware).
+ */
+import '@/styles/global.css';
+import { Font } from 'astro:assets';
+import Logo from '@/components/Logo.astro';
+
+interface Props { title: string; wide?: boolean; bare?: boolean }
+const { title, wide = false, bare = false } = Astro.props;
+const user = Astro.locals.user;
+const path = Astro.url.pathname;
+const notice = Astro.url.searchParams.get('notice');
+const error = Astro.url.searchParams.get('error');
+const nav = [
+  { href: '/admin/events', label: 'Events' },
+  ...(user?.role === 'admin' ? [{ href: '/admin/staff', label: 'Staff' }, { href: '/admin/settings', label: 'Settings' }] : []),
+  { href: '/admin/account', label: 'My account' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} · Northminster admin</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <Font cssVariable="--font-display" />
+    <Font cssVariable="--font-body" preload />
+  </head>
+  <body class="admin">
+    <a class="skip-link" href="#main">Skip to content</a>
+    {!bare && (
+      <header class="admin-bar">
+        <div class="admin-bar__inner">
+          <a href="/admin/events" class="admin-bar__logo" aria-label="Northminster Presbyterian Church — admin home"><Logo compact /></a>
+          <nav aria-label="Admin">
+            <ul role="list" class="admin-nav">
+              {nav.map((n) => <li><a href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>{n.label}</a></li>)}
+            </ul>
+          </nav>
+          <div class="admin-bar__user">
+            <a href="/" target="_blank" rel="noopener" class="admin-link">View website<span class="visually-hidden"> (opens in a new tab)</span></a>
+            {user && (
+              <button type="button" class="admin-link" data-sign-out>Sign out</button>
+            )}
+          </div>
+        </div>
+      </header>
+    )}
+    <main id="main" tabindex="-1" class:list={['admin-main', wide && 'admin-main--wide', bare && 'admin-main--bare']}>
+      {notice && <p class="flash flash--ok" role="status">{notice}</p>}
+      {error && <p class="flash flash--error" role="alert">{error}</p>}
+      <slot />
+    </main>
+    <script>
+      document.querySelector('[data-sign-out]')?.addEventListener('click', async () => {
+        await fetch('/api/auth/sign-out', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        location.href = '/admin/login?notice=' + encodeURIComponent('You’re signed out.');
+      });
+      // Prevent double submits on every admin form.
+      document.querySelectorAll<HTMLFormElement>('form:not([data-allow-resubmit])').forEach((f) => {
+        f.addEventListener('submit', (e) => {
+          const submitter = (e as SubmitEvent).submitter as HTMLButtonElement | null;
+          if (f.dataset.submitting && !submitter?.formTarget) { e.preventDefault(); return; }
+          if (submitter?.formTarget === '_blank') return; // preview opens a new tab; keep the form usable
+          f.dataset.submitting = '1';
+          if (submitter) { submitter.dataset.label = submitter.textContent ?? ''; submitter.setAttribute('aria-busy', 'true'); submitter.textContent = 'Working…'; }
+        });
+      });
+      // Confirmation for destructive actions: <button data-confirm="…">
+      document.querySelectorAll<HTMLButtonElement>('[data-confirm]').forEach((b) => {
+        b.addEventListener('click', (e) => { if (!confirm(b.dataset.confirm!)) e.preventDefault(); });
+      });
+      // Clean flash params out of the URL so a refresh doesn't repeat them.
+      const u = new URL(location.href);
+      if (u.searchParams.has('notice') || u.searchParams.has('error')) {
+        u.searchParams.delete('notice'); u.searchParams.delete('error');
+        history.replaceState(null, '', u.pathname + (u.search || '') + u.hash);
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  .admin [hidden] { display: none !important; }
+  body.admin { background: #f3efe7; font-size: 1rem; }
+  .admin-bar { background: var(--paper); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
+  .admin-bar__inner { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; max-width: 80rem; margin-inline: auto; padding: 0.6rem var(--gutter); }
+  .admin-bar__logo { text-decoration: none; margin-right: auto; }
+  .admin-nav { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+  .admin-nav a { display: inline-block; padding: 0.55rem 0.9rem; border-radius: 999px; font-weight: 600; text-decoration: none; font-size: 0.9375rem; }
+  .admin-nav a:hover { background: var(--sand); }
+  .admin-nav a[aria-current='page'] { background: var(--ink); color: var(--paper); }
+  .admin-bar__user { display: flex; gap: 1rem; align-items: center; }
+  .admin-link { font-size: 0.875rem; font-weight: 600; text-decoration: underline; text-underline-offset: 0.2em; min-height: 2.75rem; display: inline-flex; align-items: center; }
+
+  .admin-main { max-width: 64rem; margin-inline: auto; padding: 2rem var(--gutter) 5rem; }
+  .admin-main--wide { max-width: 80rem; }
+  .admin-main--bare { max-width: 28rem; padding-top: clamp(2rem, 8vh, 6rem); }
+
+  .admin h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem); letter-spacing: -0.02em; line-height: 1.05; }
+  .admin h2 { font-family: var(--display); font-weight: 450; font-size: 1.4rem; letter-spacing: -0.01em; }
+  .page-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.75rem; }
+  .page-head p { color: var(--muted); margin-top: 0.35rem; }
+
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: clamp(1.25rem, 3vw, 2rem); }
+  .card + .card { margin-top: 1.25rem; }
+
+  .flash { margin-bottom: 1.25rem; padding: 0.9rem 1.1rem; border-radius: 6px; font-weight: 600; }
+  .flash--ok { background: #e3f0ea; color: #134a2f; border: 1px solid #a9cfbb; }
+  .flash--error { background: #fbe7e1; color: #7a2410; border: 1px solid #e9b4a5; }
+
+  /* Form controls */
+  .field { display: grid; gap: 0.4rem; align-content: start; }
+  .field + .field, .field + .row, .row + .field, .row + .row { margin-top: 1.1rem; }
+  .row { display: grid; gap: 1.1rem; }
+  .row > .field, .row > * { margin-top: 0 !important; min-width: 0; }
+  @media (min-width: 40em) { .row--2 { grid-template-columns: 1fr 1fr; } .row--3 { grid-template-columns: repeat(3, 1fr); } .row--4 { grid-template-columns: repeat(4, 1fr); } }
+  .field > label, .label { font-weight: 650; font-size: 0.9375rem; }
+  .hint { font-size: 0.875rem; color: var(--muted); }
+  .req { color: var(--ember); }
+  .admin input[type='text'], .admin input[type='email'], .admin input[type='password'], .admin input[type='url'], .admin input[type='date'],
+  .admin input[type='time'], .admin input[type='number'], .admin input[type='search'], .admin select, .admin textarea {
+    width: 100%; min-height: 2.9rem; padding: 0.65rem 0.8rem;
+    border: 1.5px solid #8c8174; border-radius: 6px; background: #fff; font-size: 1rem; line-height: 1.4;
+  }
+  .admin textarea { resize: vertical; min-height: 6rem; }
+  .admin input:focus-visible, .admin select:focus-visible, .admin textarea:focus-visible, .admin [contenteditable]:focus-visible { outline: 3px solid var(--teal); outline-offset: 1px; border-color: var(--teal); }
+  .admin [aria-invalid='true'] { border-color: #b3261e !important; background: #fff8f6 !important; }
+  .field-error { color: #b3261e; font-size: 0.875rem; font-weight: 600; }
+  .check { display: flex; gap: 0.6rem; align-items: flex-start; font-weight: 600; cursor: pointer; }
+  .check input { width: 1.25rem; height: 1.25rem; margin-top: 0.1rem; accent-color: var(--teal); flex-shrink: 0; }
+  .check small { display: block; font-weight: 400; color: var(--muted); }
+
+  .btn[aria-busy='true'] { opacity: 0.7; pointer-events: none; }
+  .btn--danger { --btn-bg: #9e2a14; }
+  .btn--danger:hover { --btn-bg: #7a1f0e; }
+  .btn--ghost { --btn-bg: transparent; --btn-fg: var(--ink); --btn-border: var(--line); }
+  .btn--ghost:hover { --btn-bg: var(--sand); --btn-border: var(--sand); }
+
+  /* Status badges */
+  .badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
+  .badge::before { content: ''; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: currentColor; }
+  .badge--published { background: #e3f0ea; color: #134a2f; }
+  .badge--draft { background: #ece4d6; color: #4d4339; }
+  .badge--cancelled { background: #fbe7e1; color: #7a2410; }
+  .badge--archived { background: #e6e6e6; color: #3d3d3d; }
+  .badge--synced { background: #e3eef5; color: #17425e; }
+  .badge--pending { background: #fff4d6; color: #5c3b00; }
+  .badge--error { background: #fbe7e1; color: #7a2410; }
+  .badge--muted { background: transparent; color: var(--muted); padding-left: 0; }
+  .badge--muted::before { background: #b5aa9b; }
+</style>

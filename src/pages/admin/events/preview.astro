@@ -1,0 +1,36 @@
+---
+/**
+ * Preview unsaved form contents exactly as the public page will look.
+ * Nothing is saved. Opened in a new tab from the event form.
+ */
+import Base from '@/layouts/Base.astro';
+import EventDetail from '@/components/EventDetail.astro';
+import { requireRole } from '@/server/guard';
+import { parseEventForm } from '@/server/events';
+import { previewFromInput } from '@/server/public-events';
+import { getImageById } from '@/server/admin-queries';
+
+export const prerender = false;
+requireRole(Astro, 'editor');
+if (Astro.request.method !== 'POST') return Astro.redirect('/admin/events');
+
+const form = await Astro.request.formData();
+const { values, errors } = parseEventForm(form);
+const image = values.imageId ? await getImageById(values.imageId) : null;
+const fx = Number(form.get('focalX')); const fy = Number(form.get('focalY'));
+const preview = previewFromInput(values, image ? { ...image, focalX: Number.isFinite(fx) ? fx : image.focalX, focalY: Number.isFinite(fy) ? fy : image.focalY } : null);
+const blocking = Object.values(errors);
+---
+
+<Base title={`Preview: ${values.title || 'Untitled event'}`} noindex>
+  <div class="preview-bar" role="status">
+    <strong>Preview</strong> — not saved. This is how the event page will look. Close this tab to keep editing.
+    {blocking.length > 0 && <span class="preview-bar__warn"> Fix before publishing: {blocking.join(' ')}</span>}
+  </div>
+  {preview ? <EventDetail event={preview} /> : <p class="container" style="padding:4rem 0">Add a title and a valid start date to see a preview.</p>}
+</Base>
+
+<style>
+  .preview-bar { position: sticky; top: 0; z-index: 60; padding: 0.75rem var(--gutter); background: #fff4d6; color: #5c3b00; border-bottom: 1px solid #e3c77a; font-size: 0.9375rem; }
+  .preview-bar__warn { display: block; margin-top: 0.25rem; font-weight: 600; color: #7a2410; }
+</style>

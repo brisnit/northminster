@@ -1,0 +1,52 @@
+---
+/**
+ * Homepage "What's happening" — rendered on demand as a server island so the
+ * rest of the homepage stays static and fast, while events always come live
+ * from the database. Cached briefly at the edge.
+ */
+import SectionHeader from './SectionHeader.astro';
+import EventCard from './EventCard.astro';
+import Icon from './Icon.astro';
+import { homepageEvents } from '@/server/public-events';
+
+let list: Awaited<ReturnType<typeof homepageEvents>> = [];
+try {
+  list = await homepageEvents(4);
+} catch (e) {
+  console.error('Homepage events failed to load', e);
+}
+Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=600');
+---
+
+<section class="section happening" aria-labelledby="events-title">
+  <div class="container">
+    <SectionHeader eyebrow="What’s happening" title="Pull up <em>a chair.</em>" align="split" id="events-title"
+      intro="Dinners, movie nights, a night off for parents. There’s almost always something going on — and you’re invited to all of it.">
+      <a href="/events" class="btn btn--outline">See all events <Icon name="arrow" size={18} class="btn__arrow" /></a>
+    </SectionHeader>
+    {list.length > 0 ? (
+      <div class="happening__grid">
+        {list.map((event, i) => (
+          <EventCard event={event} variant={i === 0 ? 'feature' : 'default'}
+            sizes={i === 0 ? '(min-width: 64em) 48vw, 85vw' : '(min-width: 64em) 24vw, 85vw'} />
+        ))}
+      </div>
+    ) : (
+      <p class="lede muted happening__empty">New events are on the way. In the meantime, join us Sundays at 10 AM — and see <a href="/events">our weekly rhythm</a>.</p>
+    )}
+  </div>
+</section>
+
+<style>
+  .happening__grid { display: grid; gap: 2.5rem 1.5rem; }
+  @media (min-width: 40em) { .happening__grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 64em) {
+    .happening__grid { grid-template-columns: 2fr 1fr 1fr; grid-template-rows: auto auto; }
+    .happening__grid > :global(:first-child) { grid-row: span 2; }
+    .happening__grid > :global(:nth-child(4)) { grid-column: 2 / span 2; }
+    .happening__grid > :global(:nth-child(4) .ecard__link) { grid-template-columns: 1fr 1fr; align-items: start; }
+    /* With 3 events, let the two smaller cards share the right column evenly. */
+    .happening__grid:has(> :nth-child(3):last-child) { grid-template-rows: auto; }
+  }
+  .happening__empty a { color: var(--teal); font-weight: 600; }
+</style>

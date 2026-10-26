@@ -1,0 +1,18 @@
+---
+import Base from '@/layouts/Base.astro';
+import EventDetail from '@/components/EventDetail.astro';
+import { eventBySlug } from '@/server/public-events';
+import { eventJsonLd } from '@/server/structured-data';
+
+export const prerender = false;
+
+const e = await eventBySlug(Astro.params.slug ?? '');
+if (!e) return new Response(null, { status: 404 });
+Astro.response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=600');
+const jsonLd = JSON.stringify(eventJsonLd(e, Astro.url.origin)).replace(/</g, '\\u003c');
+---
+
+<Base title={e.title} description={e.summary || `${e.title} at Northminster Presbyterian Church.`} ogImage={e.image?.url}>
+  <script slot="head" type="application/ld+json" set:html={jsonLd} />
+  <EventDetail event={e} />
+</Base>

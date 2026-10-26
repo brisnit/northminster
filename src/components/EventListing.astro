@@ -1,0 +1,68 @@
+---
+/**
+ * The editorial event row used on /events (oversized date, uppercase
+ * date/time, serif title, WHERE / FOR / COST row, details, CTA, photo).
+ */
+import type { PublicEvent } from '@/server/public-events';
+import { fmtWeekday, fmtLongDate, fmtMonthShort, fmtDayNum } from '@/server/time';
+import FactList from './FactList.astro';
+import EventPhoto from './EventPhoto.astro';
+
+interface Props { event: PublicEvent; headingLevel?: 'h2' | 'h3'; linkTitle?: boolean }
+const { event: e, headingLevel = 'h3', linkTitle = true } = Astro.props;
+const H = headingLevel;
+const cancelled = e.status === 'cancelled';
+const facts = [
+  ...(e.venue ? [{ label: 'Where', value: e.venue }] : []),
+  ...(e.audience ? [{ label: 'For', value: e.audience }] : []),
+  ...(e.cost ? [{ label: 'Cost', value: e.cost }] : []),
+];
+const ctaHref = e.registrationUrl || (e.contact && /@/.test(e.contact) ? `mailto:${e.contact}` : '');
+const external = /^https?:/.test(ctaHref);
+---
+
+<li class:list={['erow', cancelled && 'erow--cancelled']} id={e.slug} data-ends={e.end.toISOString()} data-reveal>
+  <p class="erow__date" aria-hidden="true">
+    <span class="erow__month">{fmtMonthShort(e.date)}</span>
+    <span class="erow__day">{fmtDayNum(e.date)}</span>
+  </p>
+  <div class="erow__main">
+    {cancelled && <p class="erow__cancelled">This event has been cancelled</p>}
+    <p class="eyebrow erow__when">
+      {fmtWeekday(e.date)}, {fmtLongDate(e.date)} · {e.timeLabel}{e.recurrenceText && <> · {e.recurrenceText}</>}
+    </p>
+    <H class="h3 erow__title">{linkTitle ? <a href={`/events/${e.slug}`}>{e.title}</a> : e.title}</H>
+    {e.summary && <p class="lede erow__summary">{e.summary}</p>}
+    {facts.length > 0 && <FactList items={facts} />}
+    {e.details.length > 0 && <ul class="erow__details">{e.details.map((d) => <li>{d}</li>)}</ul>}
+    {!cancelled && ctaHref && (
+      <a href={ctaHref} class="btn btn--teal btn--sm" target={external ? '_blank' : undefined} rel={external ? 'noopener' : undefined}>
+        {e.registrationLabel}{external && <span class="visually-hidden"> (opens in a new tab)</span>}
+      </a>
+    )}
+  </div>
+  {e.image && <EventPhoto image={e.image} sizes="(min-width: 64em) 30vw, 100vw" class="erow__photo" />}
+</li>
+
+<style>
+  .erow { display: grid; gap: 1.25rem; padding-block: var(--space-l); border-bottom: 1px solid var(--line); scroll-margin-top: 7rem; }
+  @media (min-width: 64em) { .erow { grid-template-columns: 6rem 1fr 26rem; gap: 3rem; align-items: start; } }
+  .erow:target { background: linear-gradient(to right, var(--sand), transparent); }
+  .erow__date { display: grid; justify-items: start; line-height: 1; }
+  .erow__month { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); }
+  .erow__day { font-family: var(--display); font-size: var(--step-5); letter-spacing: -0.04em; }
+  .erow__main { display: grid; gap: 0.75rem; justify-items: start; min-width: 0; }
+  .erow__when { color: var(--ember); font-size: 0.75rem; }
+  .erow__title a { text-decoration: none; }
+  .erow__title a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.12em; }
+  .erow__summary { color: var(--muted); }
+  .erow :global(.facts) { width: 100%; margin-block: 0.5rem; }
+  .erow__details { padding-left: 1.2em; color: var(--muted); }
+  .erow__details li + li { margin-top: 0.25rem; }
+  .erow__cancelled {
+    padding: 0.3rem 0.75rem; border-radius: 999px; background: var(--ink); color: var(--paper);
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .erow--cancelled .erow__title { text-decoration: line-through; text-decoration-thickness: 1px; }
+  .erow--cancelled :global(.erow__photo) { filter: grayscale(0.85); opacity: 0.8; }
+</style>

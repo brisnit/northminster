@@ -1,0 +1,111 @@
+---
+import Admin from '@/layouts/Admin.astro';
+import { requireRole } from '@/server/guard';
+import { inviteStaff, listStaff, resetLink, setActive, setRole, StaffError } from '@/server/staff';
+
+export const prerender = false;
+const me = requireRole(Astro, 'admin');
+
+let link: { who: string; url: string; kind: 'invite' | 'reset' } | null = null;
+let error = '';
+let notice = '';
+
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const action = String(f.get('action'));
+  const id = String(f.get('id') ?? '');
+  try {
+    if (action === 'invite') {
+      const url = await inviteStaff(me, { name: String(f.get('name') ?? ''), email: String(f.get('email') ?? ''), role: f.get('role') === 'admin' ? 'admin' : 'editor' }, Astro.url.origin);
+      link = { who: String(f.get('name')), url, kind: 'invite' };
+    } else if (action === 'reset') {
+      link = { who: String(f.get('name') ?? 'them'), url: await resetLink(me, id, Astro.url.origin), kind: 'reset' };
+    } else if (action === 'role') {
+      await setRole(me, id, f.get('role') === 'admin' ? 'admin' : 'editor'); notice = 'Role updated.';
+    } else if (action === 'deactivate' || action === 'reactivate') {
+      await setActive(me, id, action === 'reactivate'); notice = action === 'deactivate' ? 'Account deactivated and signed out everywhere.' : 'Account reactivated.';
+    }
+  } catch (e) {
+    if (e instanceof StaffError) error = e.message;
+    else { console.error(e); error = 'Something went wrong. Please try again.'; }
+  }
+}
+const staff = await listStaff();
+---
+
+<Admin title="Staff">
+  <div class="page-head"><div><h1>Staff</h1><p><strong>Editors</strong> can create and publish events. <strong>Administrators</strong> can also manage staff and settings.</p></div></div>
+  {error && <p class="flash flash--error" role="alert">{error}</p>}
+  {notice && <p class="flash flash--ok" role="status">{notice}</p>}
+
+  {link && (
+    <div class="card linkbox" role="status">
+      <h2>{link.kind === 'invite' ? `Invitation for ${link.who}` : `Password reset link for ${link.who}`}</h2>
+      <p>Copy this link and send it to them (text or email). It works <strong>once</strong> and expires in <strong>3 days</strong>. Anyone with the link can set the password, so send it only to them.</p>
+      <div class="linkbox__row">
+        <input type="text" readonly value={link.url} aria-label="One-time link" id="one-time-link" />
+        <button type="button" class="btn btn--teal btn--sm" data-copy>Copy link</button>
+      </div>
+    </div>
+  )}
+
+  <div class="card">
+    <h2>Invite someone</h2>
+    <form method="post" class="invite">
+      <input type="hidden" name="action" value="invite" />
+      <div class="row row--3">
+        <div class="field"><label for="name">Name</label><input id="name" name="name" type="text" required maxlength="100" autocomplete="off" /></div>
+        <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required autocomplete="off" /></div>
+        <div class="field"><label for="role">Role</label><select id="role" name="role"><option value="editor">Editor</option><option value="admin">Administrator</option></select></div>
+      </div>
+      <button class="btn btn--teal" style="margin-top:1.1rem">Create account &amp; get invite link</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Everyone with access</h2>
+    <ul role="list" class="people">
+      {staff.map((s) => (
+        <li class:list={['person', s.banned && 'is-off']}>
+          <div>
+            <p class="person__name">{s.name}{s.id === me.id && ' (you)'}</p>
+            <p class="hint">{s.email} · {s.banned ? 'Deactivated' : s.hasPassword ? 'Active' : 'Invited — hasn’t set a password yet'}</p>
+          </div>
+          <form method="post" class="person__actions">
+            <input type="hidden" name="id" value={s.id} />
+            <input type="hidden" name="name" value={s.name} />
+            <label class="visually-hidden" for={`role-${s.id}`}>Role for {s.name}</label>
+            <select id={`role-${s.id}`} name="role" disabled={s.id === me.id}>
+              <option value="editor" selected={s.role !== 'admin'}>Editor</option>
+              <option value="admin" selected={s.role === 'admin'}>Administrator</option>
+            </select>
+            {s.id !== me.id && <button name="action" value="role" class="btn btn--ghost btn--sm">Save role</button>}
+            <button name="action" value="reset" class="btn btn--ghost btn--sm">{s.hasPassword ? 'Reset password' : 'New invite link'}</button>
+            {s.id !== me.id && (s.banned
+              ? <button name="action" value="reactivate" class="btn btn--ghost btn--sm">Reactivate</button>
+              : <button name="action" value="deactivate" class="btn btn--ghost btn--sm" data-confirm={`Deactivate ${s.name}? They’ll be signed out and unable to sign in.`}>Deactivate</button>)}
+          </form>
+        </li>
+      ))}
+    </ul>
+  </div>
+  <script>
+    document.querySelector('[data-copy]')?.addEventListener('click', async (e) => {
+      const input = document.getElementById('one-time-link') as HTMLInputElement;
+      input.select();
+      try { await navigator.clipboard.writeText(input.value); (e.target as HTMLElement).textContent = 'Copied!'; } catch { document.execCommand('copy'); }
+    });
+  </script>
+</Admin>
+
+<style>
+  .linkbox { border: 2px solid var(--teal); display: grid; gap: 0.75rem; }
+  .linkbox__row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .linkbox__row input { flex: 1; min-width: 14rem; font-family: ui-monospace, monospace; font-size: 0.875rem !important; }
+  .people { display: grid; margin-top: 1rem; border-top: 1px solid var(--line); }
+  .person { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem 1.5rem; padding-block: 1rem; border-bottom: 1px solid var(--line); }
+  .person.is-off .person__name { text-decoration: line-through; text-decoration-thickness: 1px; }
+  .person__name { font-weight: 700; }
+  .person__actions { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+  .person__actions select { width: auto; min-height: 2.75rem; }
+</style>

@@ -1,0 +1,144 @@
+---
+/** Full event page body — used by /events/[slug] and the admin preview. */
+import type { PublicEvent } from '@/server/public-events';
+import { fmtWeekday, fmtLongDate, fmtMonthShort, fmtDayNum, fmtShortDate } from '@/server/time';
+import { church, fullAddress } from '@/config/site';
+import FactList from './FactList.astro';
+import EventPhoto from './EventPhoto.astro';
+import Icon from './Icon.astro';
+
+interface Props { event: PublicEvent }
+const { event: e } = Astro.props;
+const cancelled = e.status === 'cancelled';
+const hasBody = Boolean(e.descriptionHtml) || e.details.length > 0;
+const ctaHref = e.registrationUrl || (e.contact && /@/.test(e.contact) ? `mailto:${e.contact}` : '');
+const external = /^https?:/.test(ctaHref);
+const facts = [
+  { label: 'When', value: `${fmtWeekday(e.date)}, ${fmtLongDate(e.date)}` },
+  { label: 'Time', value: e.timeLabel },
+  ...(e.venue ? [{ label: 'Where', value: e.venue }] : []),
+  ...(e.audience ? [{ label: 'For', value: e.audience }] : []),
+  ...(e.cost ? [{ label: 'Cost', value: e.cost }] : []),
+];
+// "Add to Google Calendar" template link (works without any API access).
+const gcal = (() => {
+  const compact = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const dates = e.allDay
+    ? `${e.date.replaceAll('-', '')}/${new Date(new Date(`${e.endDate}T12:00:00Z`).getTime() + 86_400_000).toISOString().slice(0, 10).replaceAll('-', '')}`
+    : `${compact(e.start)}/${compact(e.end)}`;
+  const u = new URL('https://calendar.google.com/calendar/render');
+  u.searchParams.set('action', 'TEMPLATE');
+  u.searchParams.set('text', e.title);
+  u.searchParams.set('dates', dates);
+  u.searchParams.set('location', [e.venue, e.address || fullAddress].filter(Boolean).join(', '));
+  u.searchParams.set('details', `${e.summary}\n\n${Astro.url.origin}/events/${e.slug}`);
+  return u.href;
+})();
+---
+
+<article class="detail">
+  <div class="container">
+    <a href="/events" class="link-arrow detail__back"><Icon name="arrow" size={16} class="flip" /> All events</a>
+    {cancelled && <p class="detail__banner" role="status">This event has been cancelled.{e.contact && <> Questions? Contact {e.contact}.</>}</p>}
+    {!cancelled && e.isPast && <p class="detail__banner detail__banner--past" role="status">This event has already happened. <a href="/events">See what’s coming up →</a></p>}
+
+    <div class="detail__grid">
+      <div class="detail__main">
+        <p class="detail__date" aria-hidden="true">
+          <span class="detail__month">{fmtMonthShort(e.date)}</span>
+          <span class="detail__day">{fmtDayNum(e.date)}</span>
+        </p>
+        <p class="eyebrow detail__when">{e.category ? `${e.category} · ` : ''}{e.recurrenceText ?? fmtWeekday(e.date)} · {e.timeLabel}</p>
+        <h1 id="page-title" class:list={['h1', cancelled && 'is-cancelled']}>{e.title}</h1>
+        {e.summary && <p class="lede detail__summary">{e.summary}</p>}
+        <FactList items={facts} />
+        {!cancelled && !e.isPast && (
+          <div class="btn-row">
+            {ctaHref && (
+              <a href={ctaHref} class="btn btn--teal" target={external ? '_blank' : undefined} rel={external ? 'noopener' : undefined}>
+                {e.registrationLabel}{external && <span class="visually-hidden"> (opens in a new tab)</span>}
+              </a>
+            )}
+            <a href={gcal} class="btn btn--outline" target="_blank" rel="noopener"><Icon name="calendar" size={18} /> Add to Google Calendar<span class="visually-hidden"> (opens in a new tab)</span></a>
+          </div>
+        )}
+      </div>
+      {e.image ? (
+        <EventPhoto image={e.image} priority sizes="(min-width: 64em) 45vw, 100vw" class="detail__photo" />
+      ) : (
+        <div class="detail__typo" aria-hidden="true">
+          <span class="detail__typo-day">{e.recurrenceText ?? fmtWeekday(e.date)}</span>
+          <span class="detail__typo-title">{e.title}</span>
+        </div>
+      )}
+    </div>
+
+    <div class:list={['detail__body', !hasBody && 'detail__body--cards']}>
+      <div class="prose" hidden={!hasBody}>
+        {e.descriptionHtml && <Fragment set:html={e.descriptionHtml} />}
+        {e.details.length > 0 && (
+          <>
+            <h2>Good to know</h2>
+            <ul>{e.details.map((d) => <li>{d}</li>)}</ul>
+          </>
+        )}
+      </div>
+      <aside class="detail__aside">
+        {e.upcomingDates.length > 1 && (
+          <div class="detail__card">
+            <h2 class="eyebrow">Upcoming dates</h2>
+            <ul role="list" class="dates">{e.upcomingDates.map((d) => <li>{fmtWeekday(d).slice(0, 3)}, {fmtShortDate(d)}</li>)}</ul>
+          </div>
+        )}
+        <div class="detail__card">
+          <h2 class="eyebrow">Location</h2>
+          <p>{e.venue && <><strong>{e.venue}</strong><br /></>}{e.address || <>{church.name}<br />{fullAddress}</>}</p>
+          <a href={church.directionsUrl} class="link-arrow" target="_blank" rel="noopener">Get directions <Icon name="arrow-up-right" size={16} /><span class="visually-hidden"> (opens Google Maps)</span></a>
+        </div>
+        {(e.contact || e.registrationRequired) && (
+          <div class="detail__card">
+            <h2 class="eyebrow">Questions</h2>
+            {e.registrationRequired && <p>Registration is required.</p>}
+            {e.contact && <p>{e.contact}</p>}
+            {!e.contact && <p>Call the church office at <a href={church.phoneHref}>{church.phone}</a>.</p>}
+          </div>
+        )}
+      </aside>
+    </div>
+  </div>
+</article>
+
+<style>
+  .detail { padding-block: clamp(2rem, 5vw, 4rem) var(--section); }
+  .detail__back { margin-bottom: 1.5rem; }
+  .detail__back :global(.flip) { transform: scaleX(-1); }
+  .detail__banner { margin-bottom: 1.5rem; padding: 0.9rem 1.2rem; border-radius: var(--radius); background: var(--ink); color: var(--paper); font-weight: 600; }
+  .detail__banner--past { background: var(--sand); color: var(--ink); }
+  .detail__banner a { color: inherit; }
+  .detail__grid { display: grid; gap: var(--space-l); align-items: start; padding-bottom: var(--space-xl); border-bottom: 1px solid var(--line); }
+  @media (min-width: 64em) { .detail__grid { grid-template-columns: 1.1fr 1fr; gap: var(--space-xl); } }
+  .detail__main { display: grid; gap: 1rem; justify-items: start; min-width: 0; }
+  .detail__date { display: grid; line-height: 1; }
+  .detail__month { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); }
+  .detail__day { font-family: var(--display); font-size: var(--step-5); letter-spacing: -0.04em; }
+  .detail__when { color: var(--ember); }
+  .is-cancelled { text-decoration: line-through; text-decoration-thickness: 2px; }
+  .detail__summary { color: var(--muted); }
+  .detail :global(.facts) { width: 100%; }
+  .detail__body { display: grid; gap: var(--space-xl); padding-top: var(--space-xl); }
+  @media (min-width: 64em) { .detail__body { grid-template-columns: 1.6fr 1fr; } }
+  .detail__aside { display: grid; gap: 1rem; align-content: start; }
+  .detail__body--cards { grid-template-columns: 1fr !important; }
+  .detail__body--cards .detail__aside { grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  .detail__typo {
+    display: grid; align-content: end; gap: 0.6rem; aspect-ratio: 4 / 3; padding: clamp(1.5rem, 4vw, 2.5rem);
+    border-radius: var(--radius); color: var(--on-night);
+    background: radial-gradient(90% 70% at 100% 0%, rgb(233 180 92 / 0.28), transparent 60%), var(--teal-deep);
+  }
+  .detail__typo-day { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--teal-soft); }
+  .detail__typo-title { font-family: var(--display); font-size: clamp(2.25rem, 5vw, 4rem); line-height: 0.95; letter-spacing: -0.03em; font-weight: 360; max-width: 10ch; }
+  .detail__card { display: grid; gap: 0.6rem; padding: 1.5rem; background: var(--sand); border-radius: var(--radius); }
+  .detail__card .eyebrow { color: var(--ember); font-size: 0.75rem; }
+  .detail__card a:not(.link-arrow) { color: var(--teal); font-weight: 600; }
+  .dates { display: grid; gap: 0.35rem; font-weight: 600; }
+</style>
