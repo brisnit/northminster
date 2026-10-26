@@ -38,6 +38,9 @@ let editUrl = '';
 let googleId = '';
 
 await step('Unauthorized visitors are blocked from admin pages and APIs', async () => {
+  const r0 = await fetch(`${BASE}/admin`, { redirect: 'manual' });
+  assert.equal(r0.status, 302, '/admin must reach the server, not 404');
+  assert.match(r0.headers.get('location'), /\/admin\/login/);
   const r1 = await fetch(`${BASE}/admin/events/new`, { redirect: 'manual' });
   assert.equal(r1.status, 302);
   assert.match(r1.headers.get('location'), /\/admin\/login/);
@@ -70,6 +73,8 @@ await step('Admin sets a password from the one-time link and signs in', async ()
   await page.type('#password', PASSWORD);
   await Promise.all([page.waitForNavigation(), page.click('#login button')]);
   assert.match(page.url(), /\/admin\/events/);
+  await page.goto(`${BASE}/admin`, { waitUntil: 'networkidle0' });
+  assert.match(page.url(), /\/admin\/events$/, 'signed-in /admin opens the dashboard');
 });
 
 await step('Create a draft with an uploaded photo (validation first)', async () => {

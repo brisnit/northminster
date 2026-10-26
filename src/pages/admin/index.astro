@@ -1,0 +1,9 @@
+---
+/**
+ * /admin → dashboard. This page must exist: on Vercel only routes with a
+ * page reach the server (and its middleware); without it /admin was a 404.
+ * Signed-out visitors are sent to /admin/login by src/middleware.ts first.
+ */
+export const prerender = false;
+return Astro.redirect('/admin/events');
+---
