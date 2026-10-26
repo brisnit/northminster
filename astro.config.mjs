@@ -19,6 +19,17 @@ export default defineConfig({
     remotePatterns: [{ protocol: 'https', hostname: '**.public.blob.vercel-storage.com' }],
   },
   security: { checkOrigin: true },
+  vite: {
+    // sanitize-html (CommonJS) requires the ESM-only htmlparser2; Vercel's
+    // function runtime can't require() ESM, so bundle them at build time.
+    // (Its whole dependency tree is bundled so nothing is left unresolved.)
+    ssr: {
+      noExternal: [
+        'sanitize-html', 'escape-string-regexp', 'htmlparser2', 'domelementtype', 'domhandler', 'domutils', 'dom-serializer',
+        'entities', 'is-plain-object', 'launder', 'dayjs', 'parse-srcset', 'postcss', 'nanoid', 'picocolors', 'source-map-js',
+      ],
+    },
+  },
   devToolbar: { enabled: false },
   // Old Squarespace URLs → new pages, so existing links and search results keep working.
   redirects: {

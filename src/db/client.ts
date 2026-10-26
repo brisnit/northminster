@@ -19,7 +19,8 @@ function useNeon() {
 async function create(): Promise<Db> {
   if (isProd() && !env('DATABASE_URL') && env('DB_DRIVER') !== 'pglite') {
     // Never silently fall back to a local database in production.
-    return new Proxy({}, { get() { throw new Error('DATABASE_URL is not configured.'); } }) as Db;
+    // (`then` must stay undefined so this object can be awaited during import.)
+    return new Proxy({}, { get(_, key) { if (key === 'then') return undefined; throw new Error('DATABASE_URL is not configured.'); } }) as Db;
   }
   if (useNeon()) {
     const { neon } = await import('@neondatabase/serverless');
