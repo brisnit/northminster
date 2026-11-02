@@ -16,7 +16,7 @@ export function getStaticPaths() {
 interface Props { sermon: Sermon; newer?: Sermon; older?: Sermon }
 const { sermon, newer, older } = Astro.props;
 const more = sermons.filter((s) => s.slug !== sermon.slug).slice(0, 3);
-const description = `${sermon.title}${sermon.scripture ? ` (${sermon.scripture})` : ''} — a message from ${sermon.speaker} at Northminster Presbyterian Church, ${formatDate(sermon.date)}.`;
+const description = `${sermon.title}${sermon.scripture ? ` (${sermon.scripture})` : ''} — a message${sermon.speaker ? ` from ${sermon.speaker}` : ''} at Northminster Presbyterian Church, ${formatDate(sermon.date)}.`;
 ---
 
 <Base title={sermon.title} description={description}>
@@ -29,7 +29,7 @@ const description = `${sermon.title}${sermon.scripture ? ` (${sermon.scripture})
           <p class="eyebrow detail__series">{sermon.series}</p>
           <h1 id="page-title" class="h2">{sermon.title}</h1>
           <dl class="detail__meta">
-            <div><dt>Speaker</dt><dd>{sermon.speaker}</dd></div>
+            {sermon.speaker && <div><dt>Speaker</dt><dd>{sermon.speaker}</dd></div>}
             <div><dt>Date</dt><dd><time datetime={sermon.date}>{formatDate(sermon.date)}</time></dd></div>
             {sermon.scripture && <div><dt>Scripture</dt><dd>{sermon.scripture}</dd></div>}
             {sermon.kind === 'homily' && <div><dt>Format</dt><dd>Homily</dd></div>}

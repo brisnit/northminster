@@ -17,7 +17,7 @@ const H = headingLevel;
         {sermon.scripture && <><span aria-hidden="true"> · </span>{sermon.scripture}</>}
       </p>
       <H class="mcard__title">{sermon.title}</H>
-      <p class="mcard__speaker small">{sermon.speaker}</p>
+      {sermon.speaker && <p class="mcard__speaker small">{sermon.speaker}</p>}
     </div>
   </a>
 </article>

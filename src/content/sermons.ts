@@ -15,7 +15,8 @@ export type Sermon = {
   date: string; // ISO yyyy-mm-dd
   scripture?: string;
   series: string;
-  speaker: string;
+  /** Only set when confirmed — leave out rather than guess. */
+  speaker?: string;
   youtubeId?: string;
   audioUrl?: string;
   kind?: 'sermon' | 'homily';
@@ -24,6 +25,47 @@ export type Sermon = {
 const AUDIO = 'https://static1.squarespace.com/static/5bc74e5fd74562db2c1eb9e4/t';
 
 export const sermons: Sermon[] = [
+  {
+    slug: '2026-11-01-parable-of-the-mustard-seed',
+    title: 'Parable of the Mustard Seed',
+    date: '2026-11-01',
+    scripture: 'Matthew 13:31–35',
+    series: 'Matthew',
+    youtubeId: 'KtkB5yfMwgI',
+  },
+  {
+    slug: '2026-10-25-secrets-of-the-kingdom',
+    title: 'Secrets of the Kingdom',
+    date: '2026-10-25',
+    scripture: 'Matthew 13:1–17',
+    series: 'Matthew',
+    youtubeId: '66iOLaUOYKU',
+  },
+  {
+    slug: '2026-10-18-no-excuses',
+    title: 'No Excuses',
+    date: '2026-10-18',
+    scripture: 'Matthew 12:37–50',
+    series: 'Matthew',
+    speaker: 'Pastor Jay Shirley',
+    youtubeId: 'IFDcFc3MheU',
+  },
+  {
+    slug: '2026-10-11-word-matter',
+    title: 'Word Matter',
+    date: '2026-10-11',
+    scripture: 'Matthew 12:22–37',
+    series: 'Matthew',
+    youtubeId: 'WqDvNj3Ncxo',
+  },
+  {
+    slug: '2026-10-04-lord-of-the-sabbath',
+    title: 'Lord of the Sabbath',
+    date: '2026-10-04',
+    scripture: 'Matthew 12:1–21',
+    series: 'Matthew',
+    youtubeId: 'KLGrpBQi7jA',
+  },
   {
     slug: '2026-09-20-honest-doubt',
     title: 'Honest Doubt',

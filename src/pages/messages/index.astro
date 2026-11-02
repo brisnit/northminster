@@ -24,7 +24,7 @@ const [latest, ...rest] = sermons;
         <div class="mhero__info">
           <p class="eyebrow mhero__label">Latest · <time datetime={latest.date}>{formatDate(latest.date)}</time></p>
           <h2 id="latest-title" class="h2">{latest.title}</h2>
-          <p class="mhero__meta">{latest.speaker}{latest.scripture && <> · {latest.scripture}</>}</p>
+          <p class="mhero__meta">{[latest.speaker, latest.scripture].filter(Boolean).join(' · ')}</p>
           <div class="btn-row">
             <a href={`/messages/${latest.slug}`} class="btn btn--light">Message details <Icon name="arrow" size={18} class="btn__arrow" /></a>
             {latest.audioUrl && <a href={`/messages/${latest.slug}#listen`} class="btn btn--outline-light"><Icon name="headphones" size={18} /> Listen</a>}
