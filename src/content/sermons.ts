@@ -26,6 +26,14 @@ const AUDIO = 'https://static1.squarespace.com/static/5bc74e5fd74562db2c1eb9e4/t
 
 export const sermons: Sermon[] = [
   {
+    slug: '2026-11-08-parable-of-the-treasure',
+    title: 'Parable of the Treasure',
+    date: '2026-11-08',
+    scripture: 'Matthew 13:44–46',
+    series: 'Matthew',
+    youtubeId: 'aP7T3gzUa0k',
+  },
+  {
     slug: '2026-11-01-parable-of-the-mustard-seed',
     title: 'Parable of the Mustard Seed',
     date: '2026-11-01',
