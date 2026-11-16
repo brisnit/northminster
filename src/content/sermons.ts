@@ -26,6 +26,14 @@ const AUDIO = 'https://static1.squarespace.com/static/5bc74e5fd74562db2c1eb9e4/t
 
 export const sermons: Sermon[] = [
   {
+    slug: '2026-11-15-parable-of-the-net',
+    title: 'Parable of the Net',
+    date: '2026-11-15',
+    scripture: 'Matthew 13:47–53',
+    series: 'Matthew',
+    youtubeId: 'c1eyYLAshsY',
+  },
+  {
     slug: '2026-11-08-parable-of-the-treasure',
     title: 'Parable of the Treasure',
     date: '2026-11-08',
