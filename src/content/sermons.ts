@@ -26,6 +26,15 @@ const AUDIO = 'https://static1.squarespace.com/static/5bc74e5fd74562db2c1eb9e4/t
 
 export const sermons: Sermon[] = [
   {
+    slug: '2026-11-22-give-us-a-king',
+    title: 'Give Us a King',
+    date: '2026-11-22',
+    // YouTube title reads "II Peter 2 13" — confirm whether 2:13 or 2:1–3.
+    scripture: 'I Samuel 8:1–9; II Peter 2:13',
+    series: 'Special Sundays',
+    youtubeId: 'GxUQ8RZrn_E',
+  },
+  {
     slug: '2026-11-15-parable-of-the-net',
     title: 'Parable of the Net',
     date: '2026-11-15',
